@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Preview Editor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: #16213e;
+      border-bottom: 1px solid #374151;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .logo h1 {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* View Mode Toggle */
+    .view-toggle {
+      display: flex;
+      background: #374151;
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .view-btn:hover {
+      color: white;
+    }
+
+    .view-btn.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    /* Save Section */
+    .save-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .filename-input {
+      display: flex;
+      align-items: center;
+      background: #374151;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .filename-input input {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 10px 12px;
+      width: 140px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .filename-input span {
+      color: #9ca3af;
+      padding-right: 12px;
+      font-size: 14px;
+    }
+
+    .save-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .save-btn:hover {
+      background: #059669;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Editor Panel */
+    .editor-panel {
+      display: flex;
+      flex-direction: column;
+      background: #1a1a2e;
+      border-right: 1px solid #374151;
+      width: 50%;
+      transition: width 0.3s;
+    }
+
+    .editor-panel.full {
+      width: 100%;
+    }
+
+    .editor-panel.hidden {
+      display: none;
+    }
+
+    .editor-toolbar {
+      background: #16213e;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #374151;
+    }
+
+    .editor-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .editor-info span {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: #374151;
+      color: white;
+    }
+
+    .action-btn.copied {
+      color: #10b981;
+    }
+
+    .editor-wrapper {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #codeEditor {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #1a1a2e;
+      color: #e5e7eb;
+      border: none;
+      padding: 16px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+      tab-size: 2;
+    }
+
+    #codeEditor:focus {
+      box-shadow: inset 0 0 0 2px #3b82f6;
+    }
+
+    /* Preview Panel */
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      background: white;
+      width: 50%;
+      transition: width 0.3s;
+    }
+
+    .preview-panel.full {
+      width: 100%;
+    }
+
+    .preview-panel.hidden {
+      display: none;
+    }
+
+    .preview-toolbar {
+      background: #f3f4f6;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .browser-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #eab308; }
+    .dot.green { background: #22c55e; }
+
+    .preview-title {
+      color: #6b7280;
+      font-size: 13px;
+      margin-left: 12px;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: none;
+      color: #6b7280;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .preview-frame {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #previewIframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Footer */
+    footer {
+      background: #16213e;
+      border-top: 1px solid #374151;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    footer span {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .view-toggle {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .main-content {
+        flex-direction: column;
+      }
+
+      .editor-panel, .preview-panel {
+        width: 100% !important;
+        height: 50%;
+      }
+
+      .editor-panel.hidden, .preview-panel.hidden {
+        display: none;
+      }
+
+      .editor-panel.full, .preview-panel.full {
+        height: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-icon">&lt;/&gt;</div>
+      <h1>HTML Preview Editor</h1>
+    </div>
+
+    <div class="view-toggle">
+      <button class="view-btn" data-view="code">코드</button>
+      <button class="view-btn active" data-view="split">분할</button>
+      <button class="view-btn" data-view="preview">프리뷰</button>
+    </div>
+
+    <div class="save-section">
+      <div class="filename-input">
+        <input type="text" id="fileName" value="my-page" placeholder="파일명">
+        <span>.html</span>
+      </div>
+      <button class="save-btn" onclick="saveFile()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        저장
+      </button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="editor-panel" id="editorPanel">
+      <div class="editor-toolbar">
+        <div class="editor-info">
+          <span>HTML</span>
+          <span id="lineCount">0 lines</span>
+        </div>
+        <div class="editor-actions">
+          <button class="action-btn" onclick="prettifyCode()">정리</button>
+          <button class="action-btn" id="copyBtn" onclick="copyCode()">복사</button>
+          <button class="action-btn" onclick="clearCode()">지우기</button>
+        </div>
+      </div>
+      <div class="editor-wrapper">
+        <textarea id="codeEditor" placeholder="HTML 코드를 여기에 붙여넣으세요..." spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="preview-panel" id="previewPanel">
+      <div class="preview-toolbar">
+        <div class="browser-dots">
+          <div class="dot red"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
+          <span class="preview-title">미리보기</span>
+        </div>
+        <button class="refresh-btn" onclick="refreshPreview()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          새로고침
+        </button>
+      </div>
+      <div class="preview-frame">
+        <iframe id="previewIframe" title="Preview" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>HTML 코드를 붙여넣고 실시간 프리뷰를 확인하세요</span>
+    <span id="charCount">0 characters</span>
+  </footer>
+
+  <script>
+    const codeEditor = document.getElementById('codeEditor');
+    const previewIframe = document.getElementById('previewIframe');
+    const lineCountEl = document.getElementById('lineCount');
+    const charCountEl = document.getElementById('charCount');
+    const copyBtn = document.getElementById('copyBtn');
+    const editorPanel = document.getElementById('editorPanel');
+    const previewPanel = document.getElementById('previewPanel');
+    const viewBtns = document.querySelectorAll('.view-btn');
+
+    // 샘플 HTML
+    const sampleHTML = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>샘플 페이지</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 400px;
+    }
+    h1 { color: #333; margin-bottom: 16px; }
+    p { color: #666; line-height: 1.6; }
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: transform 0.2s;
+    }
+    .btn:hover { transform: scale(1.05); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎉 환영합니다!</h1>
+    <p>HTML 코드를 왼쪽에 붙여넣으면<br>실시간으로 프리뷰가 표시됩니다.</p>
+    <button class="btn">시작하기</button>
+  </div>
+</body>
+</html>`;
+
+    // 초기화
+    codeEditor.value = sampleHTML;
+    updatePreview();
+    updateStats();
+
+    // 실시간 프리뷰 업데이트
+    codeEditor.addEventListener('input', () => {
+      updatePreview();
+      updateStats();
+    });
+
+    function updatePreview() {
+      const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+      doc.open();
+      doc.write(codeEditor.value);
+      doc.close();
+    }
+
+    function updateStats() {
+      const code = codeEditor.value;
+      const lines = code.split('\n').length;
+      lineCountEl.textContent = `${lines} lines`;
+      charCountEl.textContent = `${code.length.toLocaleString()} characters`;
+    }
+
+    function refreshPreview() {
+      updatePreview();
+    }
+
+    function saveFile() {
+      const fileName = document.getElementById('fileName').value || 'index';
+      const blob = new Blob([codeEditor.value], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileName}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(codeEditor.value);
+      copyBtn.textContent = '복사됨 ✓';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = '복사';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    }
+
+    function clearCode() {
+      codeEditor.value = '';
+      updatePreview();
+      updateStats();
+    }
+
+    function prettifyCode() {
+      try {
+        let code = codeEditor.value;
+        code = code.replace(/>\s*</g, '>\n<');
+        codeEditor.value = code;
+        updatePreview();
+        updateStats();
+      } catch (e) {
+        console.error('Format error:', e);
+      }
+    }
+
+    // 뷰 모드 전환
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const view = btn.dataset.view;
+
+        if (view === 'code') {
+          editorPanel.classList.remove('hidden');
+          editorPanel.classList.add('full');
+          previewPanel.classList.add('hidden');
+          previewPanel.classList.remove('full');
+        } else if (view === 'preview') {
+          editorPanel.classList.add('hidden');
+          editorPanel.classList.remove('full');
+          previewPanel.classList.remove('hidden');
+          previewPanel.classList.add('full');
+        } else {
+          editorPanel.classList.remove('hidden', 'full');
+          previewPanel.classList.remove('hidden', 'full');
+        }
+      });
+    });
+
+    // Tab 키 지원
+    codeEditor.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = codeEditor.selectionStart;
+        const end = codeEditor.selectionEnd;
+        codeEditor.value = codeEditor.value.substring(0, start) + '  ' + codeEditor.value.substring(end);
+        codeEditor.selectionStart = codeEditor.selectionEnd = start + 2;
+        updatePreview();
+      }
+    });
+  </script>
+</body>
+</html>
