@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>투자는인생TV 아카데미 3회 - 펀더멘탈 분석 가이드</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+            line-height: 1.7;
+            color: #1a1a2e;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 16px;
+            max-width: 100%;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 24px 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+        
+        .meta-info {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .meta-info p {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+        
+        .meta-info a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title .icon {
+            font-size: 1.2rem;
+        }
+        
+        .content {
+            font-size: 0.95rem;
+            color: #343a40;
+        }
+        
+        .content p {
+            margin-bottom: 14px;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border-left: 4px solid #ffc107;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        
+        .highlight-box.blue {
+            background: linear-gradient(135deg, #e7f3ff 0%, #cfe2ff 100%);
+            border-left-color: #0066cc;
+        }
+        
+        .highlight-box.green {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left-color: #28a745;
+        }
+        
+        .highlight-box.red {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-left-color: #dc3545;
+        }
+        
+        .key-point {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.85rem;
+        }
+        
+        .comparison-table th {
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        
+        .metric-card h4 {
+            font-size: 0.95rem;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+        
+        .metric-card p {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 0;
+        }
+        
+        .formula-box {
+            background: #16213e;
+            color: #f8f9fa;
+            padding: 16px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 14px 0;
+        }
+        
+        .chart-container {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .chart-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bar-label {
+            width: 80px;
+            font-size: 0.75rem;
+            color: #495057;
+            flex-shrink: 0;
+        }
+        
+        .bar-wrapper {
+            flex: 1;
+            background: #e9ecef;
+            border-radius: 6px;
+            height: 24px;
+            overflow: hidden;
+        }
+        
+        .bar {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .bar.tech { background: linear-gradient(90deg, #667eea, #764ba2); }
+        .bar.health { background: linear-gradient(90deg, #11998e, #38ef7d); }
+        .bar.defense { background: linear-gradient(90deg, #f093fb, #f5576c); }
+        .bar.cyclical { background: linear-gradient(90deg, #4facfe, #00f2fe); }
+        
+        .pie-chart-visual {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        
+        .pie-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #495057;
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .flow-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .flow-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            width: 90%;
+        }
+        
+        .flow-arrow {
+            color: #adb5bd;
+            font-size: 1.2rem;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+            margin: 16px 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 16px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #667eea;
+        }
+        
+        .timeline-year {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .timeline-content {
+            font-size: 0.85rem;
+            color: #495057;
+        }
+        
+        .checklist {
+            list-style: none;
+            margin: 14px 0;
+        }
+        
+        .checklist li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .checklist li::before {
+            content: '✓';
+            color: #28a745;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .checklist li.warning::before {
+            content: '⚠';
+            color: #ffc107;
+        }
+        
+        .checklist li.danger::before {
+            content: '✗';
+            color: #dc3545;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+        
+        .summary-card h3 {
+            font-size: 1rem;
+            margin-bottom: 14px;
+            opacity: 0.95;
+        }
+        
+        .summary-card ul {
+            list-style: none;
+            font-size: 0.9rem;
+        }
+        
+        .summary-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .summary-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 2px;
+        }
+        
+        .tag.growth { background: #d4edda; color: #155724; }
+        .tag.value { background: #cce5ff; color: #004085; }
+        .tag.risk { background: #f8d7da; color: #721c24; }
+        .tag.safe { background: #e2e3e5; color: #383d41; }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #dee2e6, transparent);
+            margin: 20px 0;
+        }
+        
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        @media (max-width: 400px) {
+            body {
+                padding: 12px;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+            
+            .bar-label {
+                width: 60px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>📊 펀더멘탈 분석 완전 가이드</h1>
+            <p class="subtitle">투자는인생TV 아카데미 3회 | 미국 증시 관점 분석</p>
+        </div>
+        
+        <!-- 메타 정보 -->
+        <div class="meta-info">
+            <p><strong>📅 방송일:</strong> 2026년 1월 2일</p>
+            <p><strong>🔗 원본:</strong> <a href="https://www.youtube.com/watch?v=9-aXDo6TGXk&t=2225s" target="_blank">YouTube 영상 바로가기</a></p>
+            <p><strong>📌 핵심 주제:</strong> 기관 투자자의 펀더멘탈 분석 방법론</p>
+        </div>
+
+        <!-- 섹션 1: 핵심 개념 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">💡</span> 핵심 투자 철학</h2>
+            <div class="content">
+                <div class="highlight-box blue">
+                    <p class="key-point">"주식을 알기 전에 기업을 알아야 하고, 기업을 알기 전에 펀더멘탈을 알아야 한다"</p>
+                </div>
+                
+                <p><strong>펀더멘탈(Fundamental)</strong>이란 기업의 본질적 가치를 구성하는 요소들입니다. 기업이 제공하는 상품과 서비스의 경쟁력, 그로 인해 발생하는 이익, 그리고 그 이익을 재투자하여 더 나은 상품과 서비스를 만들어내는 <strong>선순환 구조</strong>를 의미합니다.</p>
+                
+                <div class="highlight-box green">
+                    <p><strong>🇺🇸 미국 자본주의 특징:</strong> "Corporate America" - 미국은 세계에서 가장 발달하고 큰 자본주의 시장을 보유하고 있으며, 개척자 정신(Pioneer Spirit)에 기반한 적극적인 기업 문화가 특징입니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션 2: 펀더멘탈을 보는 이유 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🎯</span> 펀더멘탈 분석의 목적</h2>
+            <div class="content">
+                <div class="flow-chart">
+                    <div class="flow-item">펀더멘탈 분석</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-item">기업가치 변화 파악</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-item">주가 방향성 예측</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-item">투자 의사결정</div>
+                </div>
+                
+                <div class="highlight-box">
+                    <p class="key-point">💡 핵심 포인트</p>
+                    <p>펀더멘탈 분석은 단순히 "회사가 잘 되는구나"를 확인하는 것이 아니라, <strong>궁극적으로 주가의 방향을 예측</strong>하기 위한 기본 자료로 활용됩니다.</p>
+                </div>
+                
+                <p><strong>시그널 vs 노이즈:</strong> 단기적인 뉴스나 변동성(노이즈)에 흔들리지 말고, 기업의 본질적 가치 변화(시그널)에 집중해야 합니다. 좋은 회사를 찾으려면 <strong>꾸준한 성장</strong>과 <strong>일관성</strong>을 봐야 합니다.</p>
+            </div>
+        </div>
+
+        <!-- 섹션 3: 성장주 vs 가치주 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">⚖️</span> 성장주 vs 가치주 분석법</h2>
+            <div class="content">
+                <p>성장주와 가치주는 펀더멘탈을 보는 시각이 <strong>완전히 다릅니다.</strong> 가치주의 잣대로 성장주를 평가하면 어떤 성장주도 투자할 수 없게 됩니다.</p>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>구분</th>
+                            <th>성장주 (Growth)</th>
+                            <th>가치주 (Value)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>핵심 지표</strong></td>
+                            <td>5년간 매출 성장률, Cash Flow 추이</td>
+                            <td>시장 점유율, 배당금 안정성</td>
+                        </tr>
+                        <tr>
+                            <td><strong>이익 상태</strong></td>
+                            <td>적자 → 흑자 전환 과정 허용</td>
+                            <td>안정적 이익 필수</td>
+                        </tr>
+                        <tr>
+                            <td><strong>주가 특성</strong></td>
+                            <td>변동성 높음</td>
+                            <td>상대적 안정</td>
+                        </tr>
+                        <tr>
+                            <td><strong>위기 시</strong></td>
+                            <td>가장 먼저 하락</td>
+                            <td>방어적 역할</td>
+                        </tr>
+                        <tr>
+                            <td><strong>주요 기업</strong></td>
+                            <td>NVIDIA, Tesla 등</td>
+                            <td>대형 배당주</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 섹션 4: 성장주 분석 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🚀</span> 성장주 핵심 분석 포인트</h2>
+            <div class="content">
+                <div class="highlight-box blue">
+                    <p class="key-point">"주가는 미래의 가치이지 현재의 가치가 아니다"</p>
+                </div>
+                
+                <p><strong>성장주 투자 타이밍:</strong> 이익이 플러스로 전환되기 <strong>전에</strong> 매수해야 합니다. 이미 흑자 전환 후에는 리스크가 줄어들어 모두가 관심을 가지기 때문입니다.</p>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📈 성장주 Profit Margin 개선 사이클 예시</div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-year">2020</div>
+                            <div class="timeline-content">Profit Margin: <strong style="color:#dc3545;">-100%</strong> (초기 투자기)</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-year">2021</div>
+                            <div class="timeline-content">Profit Margin: <strong style="color:#dc3545;">-20%</strong> (개선 시작)</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-year">2022</div>
+                            <div class="timeline-content">Profit Margin: <strong style="color:#ffc107;">0%</strong> (손익분기점) ← <span style="color:#667eea;"><strong>매수 적기</strong></span></div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-content">Profit Margin: <strong style="color:#28a745;">+30%</strong> (흑자 전환)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">📋 성장주 체크리스트</h4>
+                <ul class="checklist">
+                    <li><strong>매출 성장률:</strong> 5년간 지속적 상승 여부</li>
+                    <li><strong>Cash Flow:</strong> 현금 흐름이 증가하고 있는지</li>
+                    <li><strong>ROI (Return on Investment):</strong> 투자 대비 수익률 개선 여부</li>
+                    <li><strong>Profit Margin 추이:</strong> 마이너스 → 플러스 전환 방향성</li>
+                    <li><strong>꾸준함:</strong> 급등락 없이 안정적 개선이 중요</li>
+                </ul>
+                
+                <div class="highlight-box red">
+                    <p><strong>⚠️ 주의:</strong> 펀더멘탈이 약해지거나 거시경제가 악화되면 <strong>성장주가 가장 먼저 하락</strong>합니다. 작년 시장 조정에서도 이러한 패턴이 나타났습니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션 5: P/E Ratio -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">📐</span> P/E Ratio 이해하기</h2>
+            <div class="content">
+                <p><strong>P/E (Price to Earnings Ratio)</strong>는 시장이 기업의 가치를 얼마나 인정하는지를 보여주는 대표적인 밸류에이션 지표입니다.</p>
+                
+                <div class="formula-box">
+                    P/E = 현재 주가 ÷ 주당순이익(EPS)
+                </div>
+                
+                <div class="metric-card">
+                    <h4>📊 S&P 500 P/E 현황</h4>
+                    <p>과거 19배까지 하락했다가 현재 <strong>23~26배</strong> 수준으로 회복. 이는 시장이 S&P 500 기업들의 미래 이익에 대해 26배의 가치를 부여한다는 의미입니다.</p>
+                </div>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>지표</th>
+                            <th>계산 방식</th>
+                            <th>용도</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>P/E TTM</strong><br>(Trailing 12M)</td>
+                            <td>현재 주가 ÷ 지난 4분기 EPS</td>
+                            <td>과거 실적 기반 평가</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Forward P/E</strong></td>
+                            <td>현재 주가 ÷ 향후 4분기 예상 EPS</td>
+                            <td>미래 가치 평가</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="highlight-box">
+                    <p><strong>💡 핵심:</strong> P/E가 변했다고 바로 주가에 영향을 미치는 것이 아닙니다. <strong>시간의 검증</strong>을 거쳐 방향성이 확인된 후에 주가 변화가 나타납니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션 6: 가치주 분석 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🏛️</span> 가치주 핵심 분석 포인트</h2>
+            <div class="content">
+                <p>가치주는 일반적으로 <strong>대형 기업</strong>이 많으며, 포트폴리오의 안정적인 중심을 담당합니다.</p>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">📋 가치주 체크리스트</h4>
+                <ul class="checklist">
+                    <li><strong>시장 점유율:</strong> 증가 vs 감소 추이 확인 (감소 시 배당 축소 가능성)</li>
+                    <li><strong>배당금 안정성:</strong> 꾸준한 지급 여부, 금액 변화</li>
+                    <li><strong>주가 안정성:</strong> 과거 데이터 분석으로 변동성 파악</li>
+                    <li><strong>이익률 변화:</strong> Profit Margin 추이 (상승 = 경쟁력 강화)</li>
+                    <li><strong>EPS 변화:</strong> 주당순이익 트렌드 추적</li>
+                </ul>
+                
+                <div class="highlight-box red">
+                    <p><strong>⚠️ 경고 신호:</strong> 중국 등 특정 시장 점유율 상실, 경쟁사에 시장 빼앗김 → 가치주의 가치 하락</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션 7: 배당금 분석 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">💰</span> 배당금으로 기업 살림 파악하기</h2>
+            <div class="content">
+                <div class="highlight-box blue">
+                    <p class="key-point">"배당금만 알면 그 기업의 살림을 다 알 수 있다"</p>
+                </div>
+                
+                <p>배당금 지급은 법적 의무가 아닙니다. 기업이 배당을 주는 이유는 <strong>주가 안정성 확보</strong>와 <strong>기관 투자자 유치</strong>를 위해서입니다.</p>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">🔍 배당금 분석 체크포인트</h4>
+                <ul class="checklist">
+                    <li><strong>지급 꾸준함:</strong> 중단 분기 없이 지속 지급 여부</li>
+                    <li class="warning"><strong>금액 감소:</strong> 배당금 금액 감소 = 위험 신호 → 포지션 축소 고려</li>
+                    <li class="danger"><strong>빚내서 배당:</strong> 순이익 감소에도 배당 유지 시 위험</li>
+                    <li><strong>금액 증가:</strong> 배당금 증가 = 긍정적 신호</li>
+                </ul>
+                
+                <div class="highlight-box green">
+                    <p><strong>배당금의 선순환:</strong> 배당 지급 → 돈을 더 남겨야 함 → 경쟁력 강화 필요 → 시장 확대 → 기업 성장</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션 8: 뮤추얼 펀드 분석 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">📁</span> 기관 포트폴리오 분석법</h2>
+            <div class="content">
+                <p><strong>뮤추얼 펀드</strong>는 여러 주식, 채권 등이 모여진 투자 상품입니다. 기관들의 포트폴리오 변화를 관찰하면 전문가들의 시각을 간접적으로 파악할 수 있습니다.</p>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📊 대형 성장주 펀드(APGYX) 포트폴리오 예시</div>
+                    <div class="bar-chart">
+                        <div class="bar-item">
+                            <span class="bar-label">Microsoft</span>
+                            <div class="bar-wrapper">
+                                <div class="bar tech" style="width: 97.3%;">9.73%</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">UNH</span>
+                            <div class="bar-wrapper">
+                                <div class="bar health" style="width: 50%;">5.0%</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Visa</span>
+                            <div class="bar-wrapper">
+                                <div class="bar cyclical" style="width: 48%;">~5.0%</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">NVIDIA</span>
+                            <div class="bar-wrapper">
+                                <div class="bar tech" style="width: 37.9%;">3.79%</div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">기타</span>
+                            <div class="bar-wrapper">
+                                <div class="bar defense" style="width: 76%;">Alphabet, Amazon 등</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <p><strong>💡 인사이트:</strong> NVIDIA가 200% 상승해도 펀드 내 비중이 크게 늘지 않은 이유는, 뮤추얼 펀드는 설정 시 정해진 <strong>비중 제한</strong>을 준수해야 하기 때문입니다(Closed-end 특성).</p>
+                </div>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">📌 기관 포트폴리오 활용법</h4>
+                <p>특정 타겟 펀드(BlackRock 등)를 정해놓고 <strong>비중 변화를 감지</strong>하세요:</p>
+                <ul class="checklist">
+                    <li>Microsoft가 10% → 6%로 감소 시 → 리스크 증가 신호</li>
+                    <li>특정 종목 비중 급증 → 해당 섹터 관심 증가</li>
+                    <li class="warning">특정 종목 포트폴리오에서 제외 → 경고 신호</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 섹션 9: 섹터 배분 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🎨</span> 섹터별 자산 배분 전략</h2>
+            <div class="content">
+                <p>섹터별로 시장 리스크에 반응하는 속도와 변동성이 다릅니다. <strong>분산 투자</strong>를 통해 특정 섹터 리스크를 상쇄(Offset)할 수 있습니다.</p>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📊 권장 섹터 배분 예시</div>
+                    <svg viewBox="0 0 300 200" style="display: block; margin: 0 auto;">
+                        <!-- 파이 차트 -->
+                        <g transform="translate(100, 100)">
+                            <!-- 경기민감주 48% -->
+                            <path d="M0,0 L80,0 A80,80 0 0,1 -16.2,78.3 Z" fill="#4facfe"/>
+                            <!-- 기술주 40% -->
+                            <path d="M0,0 L-16.2,78.3 A80,80 0 0,1 -76.1,-24.7 Z" fill="#667eea"/>
+                            <!-- 방어주 32% -->
+                            <path d="M0,0 L-76.1,-24.7 A80,80 0 0,1 24.7,-76.1 Z" fill="#f5576c"/>
+                            <!-- 헬스케어 25% -->
+                            <path d="M0,0 L24.7,-76.1 A80,80 0 0,1 80,0 Z" fill="#11998e"/>
+                        </g>
+                        
+                        <!-- 범례 -->
+                        <g transform="translate(190, 40)">
+                            <rect x="0" y="0" width="12" height="12" fill="#4facfe"/>
+                            <text x="18" y="10" font-size="11" fill="#343a40">경기민감 48%</text>
+                            
+                            <rect x="0" y="22" width="12" height="12" fill="#667eea"/>
+                            <text x="18" y="32" font-size="11" fill="#343a40">기술주 40%</text>
+                            
+                            <rect x="0" y="44" width="12" height="12" fill="#f5576c"/>
+                            <text x="18" y="54" font-size="11" fill="#343a40">방어주 32%</text>
+                            
+                            <rect x="0" y="66" width="12" height="12" fill="#11998e"/>
+                            <text x="18" y="76" font-size="11" fill="#343a40">헬스케어 25%</text>
+                        </g>
+                    </svg>
+                </div>
+                
+                <div class="highlight-box green">
+                    <p><strong>🏗️ 포트폴리오 = 건물 짓기:</strong> 횡적·종적으로 잘 짜인 구조처럼, 지진(시장 충격)에도 버틸 수 있는 포트폴리오를 구성해야 합니다. <strong>한 섹터에 몰빵은 금물!</strong></p>
+                </div>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">💼 자산 규모별 전략</h4>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>자산 규모</th>
+                            <th>보수적 배분</th>
+                            <th>리스크 배분</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>10억원 미만</td>
+                            <td>90% 이상</td>
+                            <td>10% 이하</td>
+                        </tr>
+                        <tr>
+                            <td>10억원 이상</td>
+                            <td>70~80%</td>
+                            <td>20~30%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size: 0.85rem; color: #6c757d; margin-top: 8px;">※ 자산 규모가 클수록 리스크 감내 능력 증가 → 성장성 투자 비중 확대 가능</p>
+            </div>
+        </div>
+
+        <!-- 섹션 10: 부채 분석 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">⚠️</span> 부채 분석 - 위험 신호 감지</h2>
+            <div class="content">
+                <p>기업의 부채 변화는 <strong>유동성 위기</strong>의 조기 경보 역할을 합니다.</p>
+                
+                <div class="metric-card">
+                    <h4>🚨 Short-term Debt (단기 부채)</h4>
+                    <p><strong>Account Payable, 1년 내 만기 채권</strong> - 단기 부채 증가는 즉각적인 자금 압박을 의미합니다. 단기 융자는 이자율이 높아 기업 부담이 큽니다.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>📋 Long-term Debt (장기 부채)</h4>
+                    <p><strong>채권, 우선주, Revolving Loan</strong> - Revolving Loan(담보대출)이 발생하면 자금에 심각한 문제가 있다는 신호입니다.</p>
+                </div>
+                
+                <div class="highlight-box red">
+                    <p><strong>Revolving Loan이란?</strong><br>재고(Inventory), 부동산, 미수금(Account Receivable)을 담보로 잡는 융자. 이것이 발생하면 <strong>자금 압박이 심각</strong>하다는 증거입니다.</p>
+                </div>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">📊 현금 건전성 지표</h4>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>지표</th>
+                            <th>설명</th>
+                            <th>해석</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Free Cash Flow</strong></td>
+                            <td>영업활동 현금 - 자본지출</td>
+                            <td>↑ 좋음 / ↓ 주의</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Current Ratio</strong></td>
+                            <td>유동자산 / 유동부채</td>
+                            <td>1 이상 = 건전</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quick Ratio</strong></td>
+                            <td>(유동자산-재고) / 유동부채</td>
+                            <td>단기 지급능력</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Debt to Equity</strong></td>
+                            <td>총부채 / 자기자본</td>
+                            <td>↑ 리스크 증가</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 섹션 11: 재무제표 분석 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">📑</span> 재무제표 분석법</h2>
+            <div class="content">
+                <div class="highlight-box blue">
+                    <p class="key-point">"펀더멘탈을 보는 것은 사진이 아닌 영화 한 편을 보는 것"</p>
+                </div>
+                
+                <p>한 해의 재무제표만 보면 안 됩니다. <strong>5년간의 추이</strong>를 통해 기업이 어디서 와서 어디로 향하는지 파악해야 합니다.</p>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">📋 핵심 재무제표</h4>
+                <div class="metric-card">
+                    <h4>📄 Income Statement (손익계산서)</h4>
+                    <p>매출, 영업이익, 순이익 등 → <strong>최소 3년치</strong> 비교 분석 필요. 추세가 상승인지 하락인지 확인.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>📄 Balance Sheet (대차대조표)</h4>
+                    <p>자산(Asset), 부채(Liability), 자본(Stockholder's Equity) 구조 파악. 돈이 어디로 흘러가는지 확인.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>📄 Cash Flow Statement (현금흐름표)</h4>
+                    <p>실제 현금의 유입/유출 파악. 이익은 있지만 현금이 없는 기업 식별 가능.</p>
+                </div>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">📅 공시 자료</h4>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>자료</th>
+                            <th>주기</th>
+                            <th>내용</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>10-K</strong></td>
+                            <td>연간</td>
+                            <td>연간 실적 종합 보고서</td>
+                        </tr>
+                        <tr>
+                            <td><strong>10-Q</strong></td>
+                            <td>분기</td>
+                            <td>분기별 실적 업데이트</td>
+                        </tr>
+                        <tr>
+                            <td><strong>8-K</strong></td>
+                            <td>수시</td>
+                            <td>중요 이벤트 공시</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 최종 요약 -->
+        <div class="summary-card">
+            <h3>📌 핵심 투자 원칙 요약</h3>
+            <ul>
+                <li>✅ 주식보다 기업을, 기업보다 펀더멘탈을 먼저 이해하라</li>
+                <li>✅ 단기 노이즈가 아닌 장기 시그널에 집중하라</li>
+                <li>✅ 성장주와 가치주는 완전히 다른 잣대로 평가하라</li>
+                <li>✅ 배당금 흐름으로 기업 건전성을 파악하라</li>
+                <li>✅ 섹터 분산으로 리스크를 분산하라</li>
+                <li>✅ 재무제표는 영화처럼 5년 추이로 봐라</li>
+                <li>✅ 부채 변화는 위기의 조기 경보다</li>
+            </ul>
+        </div>
+
+        <!-- 투자 시사점 -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🎯</span> 미국 증시 투자 시사점</h2>
+            <div class="content">
+                <h4 style="margin-bottom: 12px; color: #1a1a2e;">1️⃣ 거시경제 연관성</h4>
+                <p>펀더멘탈이 약해지거나 거시경제가 악화되면 성장주가 가장 먼저 타격을 받습니다. 연준(Fed)의 금리 정책, 인플레이션, 경기 사이클을 항상 주시해야 합니다.</p>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">2️⃣ 기관 동향 모니터링</h4>
+                <p>6,700개 이상의 기업을 추적하는 기관들의 레이팅 변화, 포트폴리오 비중 변화는 중요한 선행 지표입니다. Tesla의 경우 기관 보유 비중이 80%에서 40%대로 하락한 것이 좋은 예시입니다.</p>
+                
+                <h4 style="margin: 16px 0 12px; color: #1a1a2e;">3️⃣ 장기 투자 마인드</h4>
+                <p>미국 기관들은 10년, 20년 이상 운용되는 펀드가 많습니다. 20~30% 단기 하락에 흔들리지 않습니다. 개인 투자자도 <strong>장기적 관점</strong>에서 펀더멘탈 분석 훈련이 필요합니다.</p>
+                
+                <div class="highlight-box green">
+                    <p><strong>💡 결론:</strong> 미국 자본시장은 투명하고 규제가 엄격합니다. 펀더멘탈에 기반한 합리적 투자가 장기적으로 보상받는 시장 구조입니다. 꾸준한 공부와 분석이 성공 투자의 핵심입니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        
+        <!-- 푸터 -->
+        <div class="footer">
+            <p>본 자료는 투자 교육 목적으로 작성되었습니다.</p>
+            <p>투자 판단의 책임은 본인에게 있습니다.</p>
+            <p style="margin-top: 8px;">📅 작성일: 2026년 1월 2일</p>
+        </div>
+    </div>
+</body>
+</html>
