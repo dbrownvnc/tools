@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유튜브 영상 정리 도구 v13 (Zero Summary)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .modal-overlay { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
+        .file-drop-zone { border: 2px dashed #475569; transition: all 0.3s ease; }
+        .file-drop-zone:hover, .file-drop-zone.drag-over { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        
+        /* 버튼 스타일 */
+        .claude-btn { background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); }
+        .claude-btn:hover { background: linear-gradient(135deg, #f97316 0%, #ef4444 100%); }
+        .gemini-btn { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); }
+        .gemini-btn:hover { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); box-shadow: 0 0 20px rgba(37, 99, 235, 0.7); }
+        
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+        
+        .step-indicator { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; font-weight: bold; }
+        .service-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        
+        /* 비우기 버튼 강조 스타일 */
+        .clear-btn { 
+            background: rgba(239, 68, 68, 0.15); 
+            color: #fca5a5; 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            transition: all 0.2s;
+        }
+        .clear-btn:hover { 
+            background: rgba(239, 68, 68, 0.3); 
+            color: #ffffff;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-bold text-white mb-1">
+                    📺 유튜브 영상 정리 도구 v13
+                </h1>
+                <p class="text-slate-400 text-sm">
+                    함축 없는 100% 전체 기록 & HTML 스타일링
+                </p>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center gap-3">
+                <span class="text-sm font-medium text-slate-300">💎 제미나이(Gemini) 모드</span>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="geminiToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 left-0 peer checked:left-4"/>
+                    <label for="geminiToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-600 cursor-pointer peer-checked:bg-blue-600 transition-colors duration-300"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div class="space-y-4">
+                <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">🔗 유튜브 링크</label>
+                    <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <p id="loadingMsg" class="text-blue-400 text-sm mt-2 hidden">⏳ 영상 정보를 가져오는 중...</p>
+                    <p id="errorMsg" class="text-red-400 text-sm mt-2 hidden"></p>
+                    <p id="successMsg" class="text-green-400 text-sm mt-2 hidden"></p>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">📌 영상 제목</label>
+                    <input type="text" id="videoTitle" placeholder="영상 제목 자동 입력" class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
+                    <label class="block text-sm font-medium text-slate-300 mb-3">🎯 기록(정리) 모드</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setAnalysisMode('auto')" id="modeAuto" class="mode-btn px-3 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium rounded-lg ring-2 ring-purple-400 ring-offset-2 ring-offset-slate-800"><span class="block text-base mb-0.5">🤖</span> 자동 (전체기록)</button>
+                        <button onclick="setAnalysisMode('finance')" id="modeFinance" class="mode-btn px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg"><span class="block text-base mb-0.5">📈</span> 경제/투자 (상세)</button>
+                        <button onclick="setAnalysisMode('general')" id="modeGeneral" class="mode-btn px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg"><span class="block text-base mb-0.5">📚</span> 일반 (상세)</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">📁 파일 형식 (HTML 추천)</label>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <button onclick="setFileFormat('auto')" id="formatAuto" class="format-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg">🤖<span class="text-[10px] block">자동</span></button>
+                                <button onclick="setFileFormat('docx')" id="formatDocx" class="format-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg">📝<span class="text-[10px] block">.docx</span></button>
+                                <button onclick="setFileFormat('md')" id="formatMd" class="format-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg">📋<span class="text-[10px] block">.md</span></button>
+                                <button onclick="setFileFormat('html')" id="formatHtml" class="format-btn px-2 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white text-xs font-medium rounded-lg ring-2 ring-orange-400 ring-offset-1 ring-offset-slate-800">🌐<span class="text-[10px] block">.html</span></button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">📐 문서 레이아웃</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="setDocLayout('auto')" id="layoutAuto" class="layout-btn px-2 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white text-xs font-medium rounded-lg ring-2 ring-teal-400 ring-offset-1 ring-offset-slate-800">🤖<span class="text-[10px] block">자동</span></button>
+                                <button onclick="setDocLayout('pc')" id="layoutPc" class="layout-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg">🖥️<span class="text-[10px] block">PC</span></button>
+                                <button onclick="setDocLayout('mobile')" id="layoutMobile" class="layout-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg">📱<span class="text-[10px] block">Mobile</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-slate-300">📝 자막 내용</label>
+                        <div class="flex gap-2">
+                            <button onclick="openTranscriptModal()" id="fetchTranscriptBtn" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1"><span>📥</span> 자막 가져오기</button>
+                            <button onclick="clearTranscript()" class="px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors">지우기</button>
+                        </div>
+                    </div>
+                    
+                    <div id="fileDropZone" class="file-drop-zone rounded-lg p-3 mb-3 text-center cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept=".txt,.srt,.vtt,.sub,.ass,.ssa,.sbv,.json" class="hidden" onchange="handleFileUpload(event)"/>
+                        <div class="text-slate-400 text-sm"><span class="text-xl">📁</span><span class="ml-2">자막 파일 드래그 또는 클릭</span></div>
+                    </div>
+                    <p id="fileInfo" class="text-green-400 text-xs mb-2 hidden"></p>
+                    <textarea id="transcript" placeholder="유튜브 자막을 여기에 붙여넣거나..." rows="6" class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none custom-scrollbar"></textarea>
+                    <p id="transcriptInfo" class="text-slate-500 text-xs mt-2"></p>
+                    <div id="geminiHint" class="hidden mt-3 p-2 bg-blue-900/30 border border-blue-700/50 rounded-lg text-xs text-blue-300">
+                        <span class="font-bold">✨ Gemini 모드:</span> 자막 없이도 영상 직접 분석 가능 (YouTube 확장 프로그램 필요)
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="runAnalysis()" id="runBtn" class="w-full px-6 py-4 claude-btn text-white font-bold rounded-xl transition-all text-lg flex items-center justify-center gap-2">🚀 Claude에서 분석 실행</button>
+                    <div class="flex gap-2">
+                        <button onclick="previewHtml()" class="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg text-sm flex items-center justify-center gap-1">👁️ HTML 미리보기</button>
+                        <button onclick="downloadHtml()" class="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg text-sm flex items-center justify-center gap-1">💾 .html 다운로드</button>
+                        <button onclick="resetAll()" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-sm">🔄 리셋</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 flex flex-col h-fit lg:h-auto">
+                <div class="flex items-center justify-between px-4 md:px-5 py-3 border-b border-slate-700">
+                    <h2 class="text-sm font-medium text-slate-300">📋 생성된 프롬프트 / 결과</h2>
+                    <div class="flex items-center gap-2">
+                        <button onclick="clearOutput()" class="px-3 py-1.5 clear-btn text-xs font-bold rounded-lg flex items-center gap-1" title="결과 내용 모두 지우기">
+                            🗑️ 전체 비우기
+                        </button>
+                        <span id="previewBadge" class="px-2 py-1 bg-slate-700 text-slate-400 text-xs rounded hidden">대기중</span>
+                    </div>
+                </div>
+                <div class="px-4 pt-2 pb-0">
+                   <p class="text-xs text-slate-400">👇 [분석 실행] 후 AI가 작성해준 HTML 코드를 여기에 붙여넣으세요.</p>
+                </div>
+                <div class="flex-1 p-4 md:p-5 overflow-auto custom-scrollbar" style="max-height: 500px;">
+                    <textarea id="output" class="w-full h-full bg-transparent text-sm text-slate-300 font-mono leading-relaxed focus:outline-none resize-none" placeholder="프롬프트가 여기에 생성됩니다.&#13;&#10;AI가 작성한 코드를 여기에 붙여넣어 확인하세요."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="transcriptModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+                <h3 class="text-lg font-semibold text-white">📥 자막 가져오기</h3>
+                <button onclick="closeTranscriptModal()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-auto custom-scrollbar" style="max-height: calc(90vh - 140px);">
+                <div class="mb-6"><div class="flex items-center gap-2 mb-3"><span class="step-indicator bg-orange-600 text-white">1</span><h4 class="text-sm font-medium text-orange-400">파일 업로드</h4></div><div class="bg-slate-900 rounded-lg p-4 border border-slate-600"><div id="modalFileDropZone" class="file-drop-zone rounded-lg p-6 text-center cursor-pointer" onclick="document.getElementById('modalFileInput').click()"><input type="file" id="modalFileInput" accept=".txt,.srt,.vtt,.sub,.ass,.ssa,.sbv,.json" class="hidden" onchange="handleModalFileUpload(event)"/><div class="text-slate-400"><span class="text-3xl">📁</span><p class="mt-2 font-medium">자막 파일 드래그/클릭</p></div></div></div></div>
+                <div class="mb-6"><div class="flex items-center gap-2 mb-3"><span class="step-indicator bg-blue-600 text-white">2</span><h4 class="text-sm font-medium text-blue-400">외부 서비스</h4></div><div class="bg-slate-900 rounded-lg p-4 border border-slate-600"><div class="grid grid-cols-2 sm:grid-cols-3 gap-2"><div class="service-card bg-slate-800 rounded-lg p-3 border border-slate-600 cursor-pointer" onclick="openExternalService('downsub')"><h5 class="text-white text-xs">DownSub</h5></div><div class="service-card bg-slate-800 rounded-lg p-3 border border-slate-600 cursor-pointer" onclick="openExternalService('youtubetranscript')"><h5 class="text-white text-xs">YouTubeTranscript</h5></div><div class="service-card bg-slate-800 rounded-lg p-3 border border-slate-600 cursor-pointer" onclick="openExternalService('savesubs')"><h5 class="text-white text-xs">SaveSubs</h5></div></div></div></div>
+                <div class="mb-6"><div class="flex items-center gap-2 mb-3"><span class="step-indicator bg-red-600 text-white">3</span><h4 class="text-sm font-medium text-red-400">유튜브 직접 복사</h4></div><div class="bg-slate-900 rounded-lg p-4 border border-slate-600"><button onclick="openYoutubeVideo()" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg">▶️ 유튜브 열기</button></div></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-700 bg-slate-800/50"><button onclick="closeTranscriptModal()" class="w-full px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg">닫기</button></div>
+        </div>
+    </div>
+
+    <div id="runModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 max-w-md w-full overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="text-5xl mb-4">✅</div>
+                <h3 class="text-xl font-bold text-white mb-2">프롬프트 복사 완료!</h3>
+                <p class="text-slate-400 mb-6">AI 창에서 붙여넣기(Ctrl+V) 하세요.</p>
+                <div class="flex gap-3"><button onclick="openAiNow()" id="openAiBtn" class="flex-1 px-4 py-3 claude-btn text-white font-bold rounded-lg">AI 열기 →</button><button onclick="closeRunModal()" class="px-4 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg">닫기</button></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="resetModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 max-w-sm w-full overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="text-5xl mb-4">🔄</div>
+                <h3 class="text-xl font-bold text-white mb-2">전체 리셋</h3>
+                <div class="flex gap-3"><button onclick="confirmReset()" class="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg">초기화</button><button onclick="closeResetModal()" class="flex-1 px-4 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg">취소</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 상태
+        let currentAnalysisMode = 'auto';
+        let currentFileFormat = 'html'; 
+        let currentDocLayout = 'auto';
+        let isGeminiMode = false;
+
+        // "Silver" 스타일 CSS (기존 스타일 유지)
+        const silverStyleCss = `body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#e8e8e8;line-height:1.7;padding:16px;max-width:100%}.container{max-width:700px;margin:0 auto}header{text-align:center;padding:24px 0;border-bottom:2px solid #4a90d9;margin-bottom:24px}h1{font-size:1.6rem;color:#64b5f6;margin-bottom:8px}h2{font-size:1.3rem;color:#81d4fa;margin:32px 0 16px;padding-left:12px;border-left:4px solid #4fc3f7}h3{font-size:1.1rem;color:#b3e5fc;margin:20px 0 12px}p{margin-bottom:14px;color:#cfd8dc;text-align:justify}.highlight-box{background:linear-gradient(135deg,#1e3a5f 0%,#2d4a6f 100%);border-radius:12px;padding:20px;margin:20px 0;border-left:4px solid #4fc3f7;box-shadow:0 4px 6px rgba(0,0,0,0.2)}.warning-box{background:linear-gradient(135deg,#5d3a3a 0%,#6d4a4a 100%);border-radius:12px;padding:20px;margin:20px 0;border-left:4px solid #ef5350}.success-box{background:linear-gradient(135deg,#2e5d3a 0%,#3e6d4a 100%);border-radius:12px;padding:20px;margin:20px 0;border-left:4px solid #66bb6a}.key-point{color:#ffcc80;font-weight:700;background:rgba(255,204,128,0.1);padding:0 4px;border-radius:4px}.number{color:#4fc3f7;font-weight:700}.negative{color:#ef5350;font-weight:700}.positive{color:#66bb6a;font-weight:700}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:0.95rem;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden}th,td{padding:12px;text-align:center;border-bottom:1px solid #37474f}th{background:#263238;color:#81d4fa;font-weight:600}tr:hover{background:rgba(255,255,255,0.05)}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}.grid-item{background:rgba(255,255,255,0.05);border-radius:8px;padding:16px;text-align:center;border:1px solid rgba(255,255,255,0.1)}.grid-value{font-size:1.5rem;font-weight:700;color:#4fc3f7}.grid-label{font-size:0.85rem;color:#90a4ae}.summary-list{list-style:none;margin:16px 0;padding:0}.summary-list li{padding:10px 12px;margin-bottom:8px;background:rgba(255,255,255,0.05);border-radius:8px;display:flex;align-items:start}.summary-list li::before{content:'▸';color:#4fc3f7;margin-right:10px;font-weight:bold}footer{text-align:center;padding:32px 0;margin-top:40px;border-top:1px solid #37474f;color:#78909c;font-size:0.85rem}.chart-container{background:rgba(255,255,255,0.03);border-radius:12px;padding:20px;margin:20px 0}.bar-chart{display:flex;flex-direction:column;gap:12px}.bar-item{display:flex;align-items:center;gap:12px}.bar-label{width:100px;font-size:0.85rem;color:#90a4ae;text-align:right}.bar-container{flex:1;background:rgba(255,255,255,0.1);border-radius:4px;height:24px;overflow:hidden}.bar{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:0.75rem;font-weight:600}.bar-blue{background:linear-gradient(90deg,#1e88e5,#42a5f5)}.bar-green{background:linear-gradient(90deg,#43a047,#66bb6a)}.bar-orange{background:linear-gradient(90deg,#fb8c00,#ffa726)}.bar-red{background:linear-gradient(90deg,#e53935,#ef5350)}.timeline{position:relative;padding-left:30px;margin:20px 0}.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#4fc3f7}.timeline-item{position:relative;margin-bottom:20px;padding-bottom:10px}.timeline-item::before{content:'';position:absolute;left:-26px;top:4px;width:12px;height:12px;border-radius:50%;background:#4fc3f7;border:2px solid #1a1a2e}.timeline-date{color:#4fc3f7;font-weight:600;font-size:0.9rem}.timeline-content{color:#cfd8dc;margin-top:4px}.pie-visual{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:20px 0}.pie-item{text-align:center;padding:15px;background:rgba(255,255,255,0.05);border-radius:8px;min-width:100px}.pie-percent{font-size:1.8rem;font-weight:700}.pie-label{font-size:0.8rem;color:#90a4ae;margin-top:4px}`;
+
+        function getCurrentDate() {
+            const now = new Date();
+            return `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
+        }
+
+        // 제미나이 모드 토글
+        document.getElementById('geminiToggle').addEventListener('change', function(e) {
+            isGeminiMode = e.target.checked;
+            updateUiForMode();
+        });
+
+        function updateUiForMode() {
+            const runBtn = document.getElementById('runBtn');
+            const openAiBtn = document.getElementById('openAiBtn');
+            const geminiHint = document.getElementById('geminiHint');
+            
+            if (isGeminiMode) {
+                runBtn.innerHTML = '✨ Gemini에서 전체 기록 실행';
+                runBtn.className = 'w-full px-6 py-4 gemini-btn text-white font-bold rounded-xl transition-all text-lg flex items-center justify-center gap-2';
+                openAiBtn.innerHTML = 'Gemini 열기 →';
+                openAiBtn.className = 'flex-1 px-4 py-3 gemini-btn text-white font-bold rounded-lg';
+                geminiHint.classList.remove('hidden');
+            } else {
+                runBtn.innerHTML = '🚀 Claude에서 전체 기록 실행';
+                runBtn.className = 'w-full px-6 py-4 claude-btn text-white font-bold rounded-xl transition-all text-lg flex items-center justify-center gap-2';
+                openAiBtn.innerHTML = 'Claude 열기 →';
+                openAiBtn.className = 'flex-1 px-4 py-3 claude-btn text-white font-bold rounded-lg';
+                geminiHint.classList.add('hidden');
+            }
+        }
+
+        function setAnalysisMode(mode) {
+            currentAnalysisMode = mode;
+            const buttons = { 'auto': 'modeAuto', 'finance': 'modeFinance', 'general': 'modeGeneral' };
+            const colors = { 'auto': 'from-purple-600 to-blue-600 ring-purple-400', 'finance': 'from-green-600 to-emerald-600 ring-green-400', 'general': 'from-blue-600 to-cyan-600 ring-blue-400' };
+            Object.keys(buttons).forEach(key => {
+                const btn = document.getElementById(buttons[key]);
+                if (key === mode) btn.className = `mode-btn px-3 py-2.5 bg-gradient-to-r ${colors[key]} text-white text-xs font-medium rounded-lg ring-2 ring-offset-2 ring-offset-slate-800`;
+                else btn.className = 'mode-btn px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg';
+            });
+        }
+
+        function setFileFormat(format) {
+            currentFileFormat = format;
+            const formats = ['auto', 'docx', 'md', 'html'];
+            const colors = { 'auto': {bg:'from-amber-600 to-orange-600', ring:'ring-amber-400'}, 'docx': {bg:'from-blue-600 to-blue-700', ring:'ring-blue-400'}, 'md': {bg:'from-slate-600 to-slate-700', ring:'ring-slate-400'}, 'html': {bg:'from-orange-600 to-red-600', ring:'ring-orange-400'} };
+            
+            formats.forEach(f => {
+                const btn = document.getElementById('format' + f.charAt(0).toUpperCase() + f.slice(1));
+                if (f === format) btn.className = `format-btn px-2 py-2 bg-gradient-to-r ${colors[f].bg} text-white text-xs font-medium rounded-lg ring-2 ${colors[f].ring} ring-offset-1 ring-offset-slate-800`;
+                else btn.className = 'format-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg';
+            });
+        }
+
+        function setDocLayout(layout) {
+            currentDocLayout = layout;
+            const layouts = ['auto', 'pc', 'mobile'];
+            const colors = { 'auto': {bg:'from-teal-600 to-cyan-600', ring:'ring-teal-400'}, 'pc': {bg:'from-indigo-600 to-purple-600', ring:'ring-indigo-400'}, 'mobile': {bg:'from-pink-600 to-rose-600', ring:'ring-pink-400'} };
+            layouts.forEach(l => {
+                const btn = document.getElementById('layout' + l.charAt(0).toUpperCase() + l.slice(1));
+                if (l === layout) btn.className = `layout-btn px-2 py-2 bg-gradient-to-r ${colors[l].bg} text-white text-xs font-medium rounded-lg ring-2 ${colors[l].ring} ring-offset-1 ring-offset-slate-800`;
+                else btn.className = 'layout-btn px-2 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg';
+            });
+        }
+
+        function extractVideoId(url) {
+            const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|shorts\/)([^&\n?#]+)/);
+            return match ? match[1] : null;
+        }
+
+        async function fetchVideoTitle(url) {
+            const loadingMsg = document.getElementById('loadingMsg');
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            loadingMsg.classList.remove('hidden'); errorMsg.classList.add('hidden'); successMsg.classList.add('hidden');
+            try {
+                const response = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                document.getElementById('videoTitle').value = data.title;
+                successMsg.textContent = '✅ 영상 정보 완료!'; successMsg.classList.remove('hidden');
+            } catch (err) {
+                errorMsg.textContent = '⚠️ 제목을 가져올 수 없습니다. 직접 입력해주세요.'; errorMsg.classList.remove('hidden');
+            } finally { loadingMsg.classList.add('hidden'); }
+        }
+        document.getElementById('youtubeUrl').addEventListener('input', function(e) { if (extractVideoId(e.target.value)) fetchVideoTitle(e.target.value); });
+
+        function handleFileUpload(event) { if (event.target.files[0]) processFile(event.target.files[0]); }
+        function handleModalFileUpload(event) { if (event.target.files[0]) { processFile(event.target.files[0]); closeTranscriptModal(); } }
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let content = e.target.result;
+                if (file.name.match(/\.(srt|vtt|sbv)$/i)) content = content.replace(/\d{2}:\d{2}.*$/gm, '').replace(/<[^>]+>/g, '');
+                document.getElementById('transcript').value = content;
+                document.getElementById('fileInfo').textContent = `✅ "${file.name}" 로드됨`; document.getElementById('fileInfo').classList.remove('hidden');
+                updateTranscriptInfo();
+            };
+            reader.readAsText(file);
+        }
+        function openTranscriptModal() { document.getElementById('transcriptModal').classList.remove('hidden'); }
+        function closeTranscriptModal() { document.getElementById('transcriptModal').classList.add('hidden'); }
+        function closeRunModal() { document.getElementById('runModal').classList.add('hidden'); }
+        function openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
+        function closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+        function openExternalService(service) {
+            const url = document.getElementById('youtubeUrl').value; const vid = extractVideoId(url);
+            const urls = { 'downsub': vid?`https://downsub.com/?url=${encodeURIComponent(url)}`:`https://downsub.com/`, 'youtubetranscript': vid?`https://youtubetranscript.com/?v=${vid}`:`https://youtubetranscript.com/`, 'savesubs': vid?`https://savesubs.com/process?url=${encodeURIComponent(url)}`:`https://savesubs.com/` };
+            if(urls[service]) window.open(urls[service], '_blank');
+        }
+        function openYoutubeVideo() { window.open(document.getElementById('youtubeUrl').value || 'https://www.youtube.com/', '_blank'); }
+        function clearTranscript() { document.getElementById('transcript').value = ''; document.getElementById('fileInfo').classList.add('hidden'); document.getElementById('transcriptInfo').textContent = ''; }
+        function updateTranscriptInfo() { const t = document.getElementById('transcript').value; document.getElementById('transcriptInfo').textContent = `글자 수: ${t.length.toLocaleString()} | 단어: ${t.trim()?t.trim().split(/\s+/).length.toLocaleString():0}`; }
+        document.getElementById('transcript').addEventListener('input', updateTranscriptInfo);
+
+        // 결과창 비우기 기능 (UI 업데이트 포함)
+        function clearOutput() {
+            document.getElementById('output').value = '';
+            document.getElementById('previewBadge').textContent = '대기중';
+            document.getElementById('previewBadge').classList.add('hidden');
+            // 포커스를 주어 바로 붙여넣기 편하게
+            document.getElementById('output').focus();
+        }
+
+        // ==========================================
+        //  프롬프트 생성 (Zero Summary / Full Record)
+        // ==========================================
+        function getPromptByMode(mode, videoTitle, youtubeUrl, transcript) {
+            const header = `**Title:** ${videoTitle || '[영상 제목]'}\n**Link:** ${youtubeUrl || '[유튜브 링크]'}\n**Date:** ${getCurrentDate()}\n\n---\n`;
+            
+            // HTML 포맷 선택 시 'Silver Style' CSS 주입
+            let visualGuide = "";
+            if (currentFileFormat === 'html') {
+                visualGuide = `
+🎨 **HTML 스타일링 지침 (Silver Premium Style 적용):**
+1. **CSS 적용:** 아래 CSS를 <style> 태그에 반드시 포함하세요.
+\`\`\`css
+${silverStyleCss}
+\`\`\`
+2. **필수 HTML 구조:**
+- **타임라인/연혁:** \`<div class="timeline"><div class="timeline-item">...\`
+- **비율(파이) 차트:** \`<div class="pie-visual"><div class="pie-item"><div class="pie-percent">60%</div>...</div>\`
+- **비교(바) 차트:** \`<div class="bar-chart">...\`
+- **핵심 내용:** \`<div class="highlight-box">...\`
+- **경고/리스크:** \`<div class="warning-box">...\`
+- **데이터 그리드:** \`<div class="grid-2">...\`
+`;
+            } else {
+                visualGuide = `🎨 **시각화:** 텍스트가 아닌 '표(Table)'를 적극 활용하세요.\n`;
+            }
+
+            let geminiSpecificInstruction = "";
+            if (isGeminiMode) {
+                geminiSpecificInstruction = `\n🔥 **Gemini 전용 (영상 직접 분석):**\n1. 링크된 영상을 직접 보고 분석하세요.\n2. 화면에 나오는 도표/차트의 수치를 100% 텍스트나 표로 변환하세요.\n3. 결과물은 반드시 '코드 블록' 안에 작성하여 한 번에 복사할 수 있게 해주세요.\n`;
+            }
+
+            // 극단적 무손실 기록 지침 (Zero Summary)
+            const commonRequirements = `
+🚫 **[최우선 지침] 요약 금지 & 완전한 재구성 (NO SUMMARIZATION / FULL TRANSCRIPTION RECONSTRUCTION):**
+1. **목표:** '요약'이 아닙니다. **'읽기 좋게 다듬은 전체 녹취록(Full Structured Record)'**입니다.
+2. **분량 유지:** 입력된 내용이 길다면, 출력 결과물도 그만큼 길어야 합니다. 내용을 줄이거나 생략하면 실패한 것으로 간주합니다.
+3. **모든 디테일 포함:**
+   - 화자의 모든 농담, 예시, 사소한 멘트, 구체적인 수치, 날짜를 하나도 빠뜨리지 말고 기록하세요.
+   - "여러 예시를 들었다"라고 뭉뚱그리지 말고, 그 예시가 무엇인지 전부 적으세요.
+4. **문어체 변환:** 말하는 구어체를 깔끔한 보고서용 문어체로 바꾸되, 정보량은 100% 유지하세요.
+5. **구조화:** 긴 줄글 대신 소제목, 불렛 포인트, 표, 박스를 사용하여 가독성을 높이되, 내용은 꽉 채우세요.
+---
+`;
+            let contentPart = transcript.trim() ? `## 📝 원본 내용 (전체 분석 대상)\n${transcript}\n---` : (isGeminiMode ? `## 📝 영상 소스\n(자막 없음. Gemini 영상 분석 기능 사용. 영상의 모든 멘트와 화면 정보를 빠짐없이 기록하세요.)\n---` : `## 📝 자막 없음\n---`);
+            
+            let modeInstruction = "";
+            if (mode === 'finance') {
+                modeInstruction = `📈 **모드: 경제/투자 전체 기록**\n- 언급된 모든 종목, 가격, 수치, 등락률을 표로 만드세요.\n- 투자 근거와 리스크 요인을 빠짐없이 나열하세요.`;
+            } else if (mode === 'general') {
+                modeInstruction = `📚 **모드: 일반 지식 전체 기록**\n- 강의나 설명의 모든 단계를 하나도 건너뛰지 말고 상세히 서술하세요.`;
+            } else {
+                modeInstruction = `🤖 **모드: 전체 기록 (자동)**\n- 주제에 상관없이 정보의 누락이 없는 완벽한 기록물을 작성하세요.`;
+            }
+
+            return header + geminiSpecificInstruction + visualGuide + "\n" + modeInstruction + "\n" + commonRequirements + "\n" + contentPart;
+        }
+
+        // 실행/복사 로직
+        function buildDocumentContent() {
+            const t = document.getElementById('transcript').value;
+            const u = document.getElementById('youtubeUrl').value;
+            if (!t.trim() && !isGeminiMode) { document.getElementById('errorMsg').textContent = '⚠️ 자막을 입력해주세요.'; document.getElementById('errorMsg').classList.remove('hidden'); return null; }
+            if (!u && isGeminiMode && !t.trim()) { document.getElementById('errorMsg').textContent = '⚠️ Gemini 모드는 링크 필수.'; document.getElementById('errorMsg').classList.remove('hidden'); return null; }
+            document.getElementById('errorMsg').classList.add('hidden');
+            return getPromptByMode(currentAnalysisMode, document.getElementById('videoTitle').value, u, t);
+        }
+
+        async function runAnalysis() {
+            const c = buildDocumentContent(); if (!c) return;
+            document.getElementById('output').value = c;
+            try { await navigator.clipboard.writeText(c); } catch(e) { document.getElementById('output').select(); document.execCommand('copy'); }
+            document.getElementById('previewBadge').textContent = '복사됨';
+            document.getElementById('previewBadge').classList.remove('hidden');
+            document.getElementById('runModal').classList.remove('hidden');
+        }
+
+        function downloadHtml() {
+            const content = document.getElementById('output').value;
+            if (!content || !content.includes('<html')) { alert('⚠️ 먼저 AI가 생성한 HTML 코드를 아래 텍스트 영역에 붙여넣어주세요.'); return; }
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `report_${new Date().toISOString().slice(0,10)}.html`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+
+        function previewHtml() {
+            const content = document.getElementById('output').value;
+            if (!content || !content.includes('<html')) { alert('⚠️ 먼저 AI가 생성한 HTML 코드를 아래 텍스트 영역에 붙여넣어주세요.'); return; }
+            const newWindow = window.open(); newWindow.document.write(content); newWindow.document.close();
+        }
+
+        function openAiNow() { window.open(isGeminiMode?'https://gemini.google.com/':'https://claude.ai/new', '_blank'); closeRunModal(); }
+        function confirmReset() { location.reload(); }
+        
+        // Modal Event Listeners
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeTranscriptModal(); closeRunModal(); closeResetModal(); } });
+        document.getElementById('transcriptModal').addEventListener('click', function(e) { if (e.target === this) closeTranscriptModal(); });
+        document.getElementById('runModal').addEventListener('click', function(e) { if (e.target === this) closeRunModal(); });
+        document.getElementById('resetModal').addEventListener('click', function(e) { if (e.target === this) closeResetModal(); });
+    </script>
+</body>
+</html>
