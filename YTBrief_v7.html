@@ -1128,6 +1128,19 @@ ${transcript}
 ---
 
 `;
+            // 프롬프트 맨 끝에 애니메이션 최종 리마인더
+            const animationFinalReminder = chartAnimationEnabled ? `
+
+⚠️⚠️⚠️ **[최종 확인 — 반드시 지켜주세요]** ⚠️⚠️⚠️
+Chart.js로 차트를 만들 때, 모든 new Chart() 호출의 options에 반드시 아래를 포함하세요:
+\`animation: { duration: 1500, easing: 'easeInOutQuart' }\`
+- 라인 차트: \`tension: 0.4\` 필수
+- 바 차트: \`animations: { y: { from: 0 } }\` 필수
+- 도넛/파이: \`animation: { animateRotate: true, animateScale: true, duration: 1500 }\` 필수
+❌ \`animation: false\` 절대 금지
+문서 완성 전 모든 차트에 애니메이션이 적용되었는지 다시 한번 확인해주세요.
+` : '';
+
             if (mode === 'auto') {
                 return header + `아래 내용을 분석해주세요.
 ${outputOptions}
@@ -1141,19 +1154,19 @@ ${outputOptions}
 
 2. **그 외 다른 주제인 경우:**
    - → 해당 분야의 전문적인 관점에서 분석
-` + commonRequirements + `위 내용을 분석해주세요.`;
+` + commonRequirements + `위 내용을 분석해주세요.` + animationFinalReminder;
 
             } else if (mode === 'finance') {
                 return header + `아래 내용을 **미국 증시 및 경제적 관점**에서 상세하게 분석해주세요.
 ${outputOptions}
 📈 **분석 방향:** 미국 증시 영향, 투자 시사점, 섹터/종목 분석, 거시경제 연관성, 연준 정책, 시장 전망
-` + commonRequirements + `위 내용을 미국증시/경제 관점에서 분석해주세요.`;
+` + commonRequirements + `위 내용을 미국증시/경제 관점에서 분석해주세요.` + animationFinalReminder;
 
             } else {
                 return header + `아래 내용을 **해당 분야의 전문적인 관점**에서 상세하게 분석해주세요.
 ${outputOptions}
 📚 **분석 방향:** 핵심 주제 파악, 중요 포인트, 전문 용어 설명, 배경 지식, 실용적 시사점
-` + commonRequirements + `위 내용을 해당 분야에 맞게 전문적으로 분석해주세요.`;
+` + commonRequirements + `위 내용을 해당 분야에 맞게 전문적으로 분석해주세요.` + animationFinalReminder;
             }
         }
 
