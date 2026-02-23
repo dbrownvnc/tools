@@ -1062,68 +1062,100 @@
         function getChartAnimationText() {
             if (!chartAnimationEnabled) return '';
             return `
-⚠️ **[필수] Chart.js 차트 애니메이션 + Intersection Observer 적용 지시:**
+⚠️ **[필수] Chart.js 애니메이션 — Intersection Observer 스크롤 트리거 패턴:**
 
-❌ **절대 금지:** \`animation: false\` 사용 금지
+CSS의 fade-in(opacity:0) 때문에 차트가 보이기 전에 애니메이션이 끝나는 문제를 방지하기 위해,
+**반드시 아래 패턴 그대로** 구현하세요. 임의로 변경하지 마세요.
 
-🚨 **핵심 문제와 해결법:**
-CSS \`.fade-in { opacity: 0 }\` 등의 등장 애니메이션을 사용하면, 차트가 보이기 전에 Chart.js 애니메이션이 이미 끝나버립니다.
-**반드시 Intersection Observer로 차트가 화면에 보일 때 생성(new Chart)하세요.**
+**[1단계] CSS — 차트 canvas를 숨겨두기:**
+\`\`\`css
+.fade-in {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.chart-container canvas {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.chart-container.chart-ready canvas {
+  opacity: 1;
+}
+\`\`\`
 
-**구현 패턴 (이 코드를 반드시 따라주세요):**
+**[2단계] HTML — 차트를 .chart-container.fade-in 으로 감싸기:**
+\`\`\`html
+<div class="chart-container fade-in">
+  <canvas id="myChart1" height="280"></canvas>
+</div>
+\`\`\`
+
+**[3단계] JS — chartConfigs 딕셔너리 + 2개의 IntersectionObserver:**
 \`\`\`javascript
-// 1. 차트 생성 함수를 정의만 하고, 바로 실행하지 않음
-function createChart1() {
-  new Chart(document.getElementById('chart1'), {
+// Observer 1: 일반 섹션 fade-in
+const fadeObs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      fadeObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fade-in').forEach(el => fadeObs.observe(el));
+
+// 차트 생성 함수를 딕셔너리에 저장 (바로 실행 금지!)
+const chartConfigs = {};
+
+chartConfigs['myChart1'] = () => {
+  new Chart(document.getElementById('myChart1'), {
     type: 'bar',
     data: { /* ... */ },
     options: {
-      animation: { duration: 1500, easing: 'easeInOutQuart' },
-      animations: { y: { from: 0 } } // 바 차트
+      animation: { duration: 1500, easing: 'easeInOutQuart', delay: (ctx) => ctx.dataIndex * 150 },
+      animations: { y: { from: 0 } }
     }
   });
-}
+};
 
-// 2. Intersection Observer로 화면에 보일 때 생성
-const chartObserver = new IntersectionObserver((entries, observer) => {
+// Observer 2: 차트 전용 — 화면에 보이면 200ms 후 차트 생성
+const chartObs = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      const canvas = entry.target;
-      // fade-in이 있으면 먼저 보이게 처리
-      const container = canvas.closest('.fade-in') || canvas.parentElement;
-      if (container) {
-        container.style.opacity = '1';
-        container.style.transform = 'translateY(0)';
+      const canvas = entry.target.querySelector('canvas');
+      if (canvas && chartConfigs[canvas.id]) {
+        setTimeout(() => {
+          chartConfigs[canvas.id]();
+          entry.target.classList.add('chart-ready');
+          delete chartConfigs[canvas.id];
+        }, 200);
       }
-      // 차트 생성 함수 실행
-      const fn = canvas.dataset.initFn;
-      if (fn && typeof window[fn] === 'function') window[fn]();
-      observer.unobserve(canvas);
+      chartObs.unobserve(entry.target);
     }
   });
-}, { threshold: 0.15 });
+}, { threshold: 0.25 });
 
-// 3. 모든 차트 canvas에 등록
-document.querySelectorAll('canvas[data-init-fn]').forEach(c => chartObserver.observe(c));
-\`\`\`
-
-**HTML에서 canvas 작성 방식:**
-\`\`\`html
-<canvas id="chart1" data-init-fn="createChart1"></canvas>
+document.querySelectorAll('.chart-container').forEach(el => chartObs.observe(el));
 \`\`\`
 
 **차트 유형별 animation 옵션:**
-- 바 차트: \`animation: { duration: 1500, easing: 'easeInOutQuart' }, animations: { y: { from: 0 } }\`
-- 라인 차트: \`tension: 0.4\` (datasets), \`animation: { duration: 1800, easing: 'easeInOutQuart' }\`
-- 도넛/파이: \`animation: { animateRotate: true, animateScale: true, duration: 1500 }\`
-- 여러 차트가 있으면 각각 다른 duration(1200~2000ms) 사용
+- 바 차트(세로): \`animation: { duration: 1500, easing: 'easeInOutQuart', delay: ctx => ctx.dataIndex * 150 }, animations: { y: { from: 0 } }\`
+- 바 차트(가로 indexAxis:'y'): \`animations: { x: { from: 0 } }\`
+- 라인 차트: datasets에 \`tension: 0.4\`, \`animation: { duration: 1800, easing: 'easeInOutQuart' }\`
+- 레이더 차트: \`animation: { duration: 1800, easing: 'easeInOutQuart', delay: ctx => ctx.dataIndex * 120 }\`
+- 도넛/파이: \`animation: { animateRotate: true, animateScale: true, duration: 2000, easing: 'easeInOutQuart' }\`
 
-**적용 확인 체크리스트:**
-✅ 모든 차트 canvas에 \`data-init-fn\` 속성 존재
-✅ 모든 차트가 함수 안에 정의되어 있고, 페이지 로드시 바로 실행되지 않음
-✅ IntersectionObserver가 각 canvas를 observe하고 있음
-✅ fade-in 컨테이너의 opacity를 차트 생성 전에 1로 변경
-✅ 모든 new Chart()에 animation 옵션 존재, animation: false 없음
+**체크리스트:**
+✅ CSS에 .chart-container canvas { opacity:0 } 와 .chart-container.chart-ready canvas { opacity:1 } 존재
+✅ 모든 차트 canvas가 \`<div class="chart-container fade-in">\` 안에 있음
+✅ 모든 차트가 chartConfigs['canvasId'] = () => { new Chart(...) }; 형태로 정의됨
+✅ new Chart()를 스크립트에서 직접 호출하지 않음 (chartConfigs에만 저장)
+✅ chartObs IntersectionObserver가 .chart-container를 observe하고, 보이면 200ms 후 실행
+✅ 실행 후 entry.target.classList.add('chart-ready') + delete chartConfigs[canvas.id]
+✅ 모든 animation 옵션에 duration, easing 포함 — animation: false 절대 금지
 `;
         }
 
@@ -1174,14 +1206,16 @@ ${transcript}
             const animationFinalReminder = chartAnimationEnabled ? `
 
 ⚠️⚠️⚠️ **[최종 확인 — 반드시 지켜주세요]** ⚠️⚠️⚠️
-**Chart.js 애니메이션이 사용자에게 보이려면 Intersection Observer 패턴을 반드시 사용하세요:**
-1. 차트를 \`new Chart()\`로 바로 생성하지 말고, 각각 별도 함수(createChart1, createChart2...)로 감쌀 것
-2. canvas에 \`data-init-fn="createChart1"\` 속성을 추가할 것
-3. IntersectionObserver로 canvas가 화면에 보일 때 해당 함수를 호출할 것
-4. fade-in 컨테이너가 있으면 차트 생성 전에 \`opacity: 1\`로 변경할 것
-5. 모든 차트 options에 \`animation: { duration: 1500, easing: 'easeInOutQuart' }\` 포함할 것
-❌ \`animation: false\` 절대 금지 | ❌ 페이지 로드시 바로 new Chart() 금지
-문서 완성 전 모든 차트에 위 패턴이 적용되었는지 다시 한번 확인해주세요.
+**Chart.js 애니메이션이 사용자에게 보이려면 아래 패턴을 반드시 사용하세요:**
+
+1. CSS: \`.chart-container canvas { opacity: 0 }\` + \`.chart-container.chart-ready canvas { opacity: 1 }\`
+2. HTML: 모든 차트 canvas를 \`<div class="chart-container fade-in"><canvas id="..."></div>\`로 감싸기
+3. JS: \`const chartConfigs = {};\` 딕셔너리에 \`chartConfigs['canvasId'] = () => { new Chart(...) };\` 로 정의만 하기
+4. JS: chartObs IntersectionObserver가 .chart-container 감시 → 보이면 \`setTimeout 200ms\` 후 함수 호출 → \`.chart-ready\` 추가 → delete
+5. JS: fadeObs IntersectionObserver가 .fade-in 감시 → 보이면 \`.visible\` 추가
+
+❌ 절대 금지: new Chart()를 스크립트에서 직접 호출 | animation: false 사용
+문서 완성 전 위 5개 항목이 모두 적용되었는지 다시 한번 확인해주세요.
 ` : '';
 
             if (mode === 'auto') {
