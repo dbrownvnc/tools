@@ -130,6 +130,12 @@
                             </div>
                         </div>
                     </div>
+                    <div class="flex items-center gap-2 mt-3 p-2 bg-slate-900/50 rounded-lg">
+                        <input type="checkbox" id="chartAnimationToggle" class="checkbox-custom" checked onchange="chartAnimationEnabled = this.checked" />
+                        <label for="chartAnimationToggle" class="text-slate-300 text-xs cursor-pointer">
+                            📊 Chart.js에 내장된 애니메이션 옵션
+                        </label>
+                    </div>
                     <p id="outputDescription" class="text-slate-400 text-xs mt-3">📁 자동 파일 형식 | 📐 자동 레이아웃</p>
                 </div>
 
@@ -382,6 +388,7 @@
         let quizCount = 10;
         let densityLevel = 4; // 1-7, 4가 기본
         let explainLevel = 4; // 1-7, 4가 기본
+        let chartAnimationEnabled = true; // Chart.js 애니메이션 옵션
 
         function getCurrentDate() {
             const now = new Date();
@@ -713,6 +720,10 @@
 
             const outputOptions = formatInstruction + layoutInstruction + densityInstruction + explainInstruction;
 
+            const chartAnimationInstruction = chartAnimationEnabled 
+                ? `\n9. Chart.js 사용 시 내장된 애니메이션 옵션을 활용하여 차트에 동적 효과 적용 (예: tension, animation duration, easing 등)\n` 
+                : '';
+
             const commonRequirements = `
 📌 **공통 요청사항:**
 1. 한번에 복사 붙여넣기 가능하게 별도의 창으로 작성
@@ -723,7 +734,7 @@
 6. 중요한 부분은 강조해서 표시
 7. 중간에 중단하지 말고 끝까지 한번에 작성
 8. HTML 파일 생성 시 반드시 <head> 안에 <meta name="robots" content="noindex, nofollow"> 태그 포함
-${getQuizPrompt()}
+${chartAnimationInstruction}${getQuizPrompt()}
 
 ---
 
@@ -834,6 +845,9 @@ ${outputOptions}
             document.getElementById('quizSlider').value = 10;
             document.getElementById('quizInput').value = 10;
             document.getElementById('quizSeparateDoc').checked = true;
+            // Chart.js 애니메이션 초기화
+            chartAnimationEnabled = true;
+            document.getElementById('chartAnimationToggle').checked = true;
             closeResetModal();
         }
 
