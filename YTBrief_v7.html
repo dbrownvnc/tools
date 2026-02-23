@@ -1058,6 +1058,33 @@
 `;
         }
 
+        // Chart.js 애니메이션 프롬프트 텍스트
+        function getChartAnimationText() {
+            if (!chartAnimationEnabled) return '';
+            return `
+⚠️ **[필수] Chart.js 차트 애니메이션 적용 지시:**
+아래 규칙을 반드시 준수하여 모든 Chart.js 차트에 애니메이션을 적용하세요.
+절대로 \`animation: false\`를 사용하지 마세요.
+
+**모든 차트 공통 — new Chart() 의 options 안에 반드시 포함:**
+\`\`\`
+animation: { duration: 1500, easing: 'easeInOutQuart' }
+\`\`\`
+
+**차트 유형별 추가 설정:**
+- 라인 차트: datasets 안에 \`tension: 0.4\` 추가하여 부드러운 곡선 적용
+- 바 차트: options.animations 안에 \`y: { from: 0 }\` 추가하여 아래→위 등장 효과
+- 도넛/파이 차트: options.animation 안에 \`animateRotate: true, animateScale: true\` 추가
+- 여러 차트가 있으면 각각 다른 duration(1200~2000ms)과 delay를 주어 순차 등장
+
+**적용 확인 체크리스트:**
+✅ 모든 new Chart() 호출에 animation 옵션 존재
+✅ animation: false 가 어디에도 없음
+✅ 라인 차트에 tension: 0.4 적용
+✅ 바 차트에 y from: 0 적용
+`;
+        }
+
         function getPromptByMode(mode, videoTitle, youtubeUrl, transcript) {
             const header = `**Title:** ${videoTitle || '[영상 제목]'}
 **Link:** ${youtubeUrl || '[유튜브 링크]'}
@@ -1078,39 +1105,7 @@
             const densityInstruction = `\n📊 **정리 밀도:** ${getDensityText()}\n`;
             const explainInstruction = `\n📖 **설명 수준:** ${getExplainText()}\n`;
 
-            const outputOptions = formatInstruction + layoutInstruction + densityInstruction + explainInstruction + getThemeText();
-
-            const chartAnimationInstruction = chartAnimationEnabled 
-                ? `
-9. **[필수] Chart.js 애니메이션 효과 적용:**
-   - 모든 Chart.js 차트에 반드시 아래와 같은 애니메이션 옵션을 포함하세요:
-   \`\`\`javascript
-   // 모든 차트 공통 옵션에 추가
-   animation: {
-     duration: 1500,
-     easing: 'easeInOutQuart'
-   },
-   // 라인 차트: tension으로 부드러운 곡선 + 포인트 순차 등장
-   datasets: [{ tension: 0.4 }],
-   animations: {
-     y: { from: (ctx) => ctx.chart.scales.y.max }
-   },
-   // 바 차트: 아래에서 위로 올라오는 효과
-   animations: {
-     y: { from: 0 }
-   },
-   // 도넛/파이: 회전 효과
-   animation: {
-     animateRotate: true,
-     animateScale: true,
-     duration: 1500
-   }
-   \`\`\`
-   - 차트별로 적합한 애니메이션 타입을 선택하여 적용
-   - easing 옵션: 'easeInOutQuart', 'easeOutBounce', 'easeOutElastic' 등 시각적으로 인상적인 효과 사용
-   - 여러 차트가 있을 경우 각 차트마다 다른 duration/delay를 주어 순차적으로 나타나게 구성
-` 
-                : '';
+            const outputOptions = formatInstruction + layoutInstruction + densityInstruction + explainInstruction + getThemeText() + getChartAnimationText();
 
             const commonRequirements = `
 📌 **공통 요청사항:**
@@ -1122,7 +1117,7 @@
 6. 중요한 부분은 강조해서 표시
 7. 중간에 중단하지 말고 끝까지 한번에 작성
 8. HTML 파일 생성 시 반드시 <head> 안에 <meta name="robots" content="noindex, nofollow"> 태그 포함
-${chartAnimationInstruction}${getQuizPrompt()}
+${getQuizPrompt()}
 
 ---
 
