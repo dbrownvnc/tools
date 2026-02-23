@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>유튜브 영상 정리 도구</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
@@ -41,6 +42,13 @@
         .slider-quiz::-webkit-slider-thumb { background: #f59e0b; }
         .slider-quiz::-moz-range-thumb { background: #f59e0b; }
         .checkbox-custom { width: 18px; height: 18px; accent-color: #10b981; cursor: pointer; }
+        .theme-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+        .theme-preview-card { transition: all 0.4s ease; border-radius: 12px; overflow: hidden; }
+        .theme-swatch { width: 16px; height: 16px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.15); }
+        .theme-preview-table th, .theme-preview-table td { padding: 6px 10px; font-size: 11px; text-align: left; }
+        .theme-preview-table { width: 100%; border-collapse: collapse; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .theme-animate-in { animation: fadeSlideIn 0.35s ease-out; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -131,10 +139,59 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 mt-3 p-2 bg-slate-900/50 rounded-lg">
-                        <input type="checkbox" id="chartAnimationToggle" class="checkbox-custom" checked onchange="chartAnimationEnabled = this.checked" />
+                        <input type="checkbox" id="chartAnimationToggle" class="checkbox-custom" checked onchange="chartAnimationEnabled = this.checked; renderThemePreview();" />
                         <label for="chartAnimationToggle" class="text-slate-300 text-xs cursor-pointer">
                             📊 Chart.js에 내장된 애니메이션 옵션
                         </label>
+                    </div>
+                    <!-- 테마 선택 드롭다운 -->
+                    <div id="themeSection" class="mt-3 hidden">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">🎨 문서 테마</label>
+                        <div class="flex items-center gap-2">
+                            <select id="themeSelect" class="theme-select flex-1 px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer" onchange="onThemeChange(this.value)">
+                                <option value="auto">🤖 자동 (Claude가 내용에 맞게 판단)</option>
+                                <optgroup label="🌙 다크 계열">
+                                    <option value="dark_midnight">🌑 미드나잇 다크</option>
+                                    <option value="dark_ocean">🌊 딥 오션</option>
+                                    <option value="dark_aurora">🌌 오로라 나이트</option>
+                                    <option value="dark_neon">💜 네온 사이버펑크</option>
+                                    <option value="dark_emerald">🌲 다크 에메랄드</option>
+                                    <option value="dark_crimson">🍷 다크 크림슨</option>
+                                </optgroup>
+                                <optgroup label="☀️ 라이트 계열">
+                                    <option value="light_minimal">⬜ 미니멀 화이트</option>
+                                    <option value="light_cream">🍦 크림 & 웜</option>
+                                    <option value="light_sky">🏔️ 스카이 블루</option>
+                                    <option value="light_lavender">💐 라벤더 소프트</option>
+                                    <option value="light_mint">🍃 민트 프레시</option>
+                                    <option value="light_peach">🍑 피치 블러쉬</option>
+                                </optgroup>
+                                <optgroup label="💼 프로페셔널 계열">
+                                    <option value="pro_finance">📈 파이낸스 블루</option>
+                                    <option value="pro_corporate">🏢 코퍼레이트 네이비</option>
+                                    <option value="pro_consulting">📊 컨설팅 그레이</option>
+                                    <option value="pro_tech">🖥️ 테크 모던</option>
+                                    <option value="pro_academic">🎓 아카데미 클래식</option>
+                                </optgroup>
+                                <optgroup label="🎨 크리에이티브 계열">
+                                    <option value="creative_gradient">🌈 그라데이션 팝</option>
+                                    <option value="creative_retro">📟 레트로 웨이브</option>
+                                    <option value="creative_sunset">🌅 선셋 글로우</option>
+                                    <option value="creative_forest">🌿 포레스트 그린</option>
+                                    <option value="creative_candy">🍬 캔디 파스텔</option>
+                                    <option value="creative_monochrome">🖤 모노크롬</option>
+                                </optgroup>
+                                <optgroup label="🏛️ 특수 테마">
+                                    <option value="special_newspaper">📰 뉴스페이퍼</option>
+                                    <option value="special_terminal">💻 터미널 해커</option>
+                                    <option value="special_blueprint">📐 블루프린트</option>
+                                    <option value="special_magazine">📖 매거진 에디토리얼</option>
+                                    <option value="special_infographic">📊 인포그래픽</option>
+                                </optgroup>
+                            </select>
+                            <div id="themeSwatches" class="flex gap-1 items-center"></div>
+                        </div>
+                        <p id="themeDescription" class="text-slate-500 text-xs mt-1.5">💡 오른쪽 미리보기에서 테마를 확인할 수 있습니다.</p>
                     </div>
                     <p id="outputDescription" class="text-slate-400 text-xs mt-3">📁 자동 파일 형식 | 📐 자동 레이아웃</p>
                 </div>
@@ -245,6 +302,7 @@
                     <div class="flex items-center gap-1 flex-wrap justify-end">
                         <span id="formatBadge" class="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded hidden">자동</span>
                         <span id="layoutBadge" class="px-2 py-1 bg-teal-600/20 text-teal-400 text-xs rounded hidden">자동</span>
+                        <span id="themeBadge" class="px-2 py-1 bg-indigo-600/20 text-indigo-400 text-xs rounded hidden">자동</span>
                         <span id="densityBadge" class="px-2 py-1 bg-purple-600/20 text-purple-400 text-xs rounded hidden">기본</span>
                         <span id="explainBadge" class="px-2 py-1 bg-cyan-600/20 text-cyan-400 text-xs rounded hidden">기본</span>
                         <span id="quizBadge" class="px-2 py-1 bg-orange-600/20 text-orange-400 text-xs rounded hidden">시험 10문제</span>
@@ -252,6 +310,44 @@
                 </div>
                 <div class="flex-1 p-4 md:p-5 overflow-auto custom-scrollbar" style="max-height: 700px;">
                     <pre id="output" class="text-sm text-slate-300 whitespace-pre-wrap font-mono leading-relaxed"></pre>
+                    <!-- 테마 미리보기 영역 -->
+                    <div id="themePreview" class="hidden theme-animate-in">
+                        <div id="themePreviewCard" class="theme-preview-card p-5" style="min-height: 400px;">
+                            <h3 id="previewTitle" class="text-lg font-bold mb-1">📊 미국 증시 동향 분석 리포트</h3>
+                            <p id="previewSubtitle" class="text-sm mb-4 opacity-70">2026.02.24 | AI 섹터 중심 시장 분석</p>
+                            
+                            <div id="previewSummaryBox" class="rounded-lg p-3 mb-4" style="font-size:12px;">
+                                <strong>📌 핵심 요약</strong>
+                                <p class="mt-1 opacity-80">나스닥 +1.2% 상승, AI 반도체 섹터 강세 지속. NVIDIA 실적 발표 후 시간외 +5% 급등. 연준 금리 동결 기조 유지에 따른 기술주 매수세 확대.</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <strong id="previewTableTitle" class="text-sm">📈 주요 지수 현황</strong>
+                                <table id="previewTable" class="theme-preview-table mt-2 w-full">
+                                    <thead><tr id="previewThead"></tr></thead>
+                                    <tbody id="previewTbody"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mb-4">
+                                <strong id="previewChartTitle" class="text-sm">📊 섹터별 수익률 비교</strong>
+                                <div class="mt-2" style="height:180px; position:relative;">
+                                    <canvas id="previewChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong id="previewLineChartTitle" class="text-sm">📉 S&P 500 주간 추이</strong>
+                                <div class="mt-2" style="height:160px; position:relative;">
+                                    <canvas id="previewLineChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div id="previewFooter" class="text-center mt-4 pt-3 opacity-50" style="font-size:10px; border-top: 1px solid rgba(128,128,128,0.3);">
+                                테마 미리보기 | Theme Preview
+                            </div>
+                        </div>
+                    </div>
                     <div id="placeholder" class="h-48 flex items-center justify-center text-slate-500 text-center">
                         <div>
                             <p class="text-4xl mb-3">📝</p>
@@ -389,6 +485,246 @@
         let densityLevel = 4; // 1-7, 4가 기본
         let explainLevel = 4; // 1-7, 4가 기본
         let chartAnimationEnabled = true; // Chart.js 애니메이션 옵션
+        let currentTheme = 'auto';
+        let previewBarChart = null;
+        let previewLineChart = null;
+
+        // ===================== 테마 데이터 =====================
+        const THEMES = {
+            auto: { name: '🤖 자동', desc: 'Claude가 내용에 맞게 판단', bg: '#1e293b', bg2: '#0f172a', text: '#e2e8f0', textSub: '#94a3b8', accent: '#3b82f6', accent2: '#8b5cf6', tableBg: '#334155', tableHead: '#1e3a5f', tableBorder: '#475569', chartColors: ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899'], summaryBg: 'rgba(59,130,246,0.1)', summaryBorder: '#3b82f6' },
+            // 다크 계열
+            dark_midnight: { name: '🌑 미드나잇 다크', desc: '깊고 고급스러운 다크 톤', bg: '#0a0a1a', bg2: '#12122a', text: '#e0e0f0', textSub: '#8888aa', accent: '#6366f1', accent2: '#a78bfa', tableBg: '#1a1a3a', tableHead: '#1e1e4a', tableBorder: '#2d2d5e', chartColors: ['#6366f1','#a78bfa','#c084fc','#818cf8','#67e8f9','#34d399'], summaryBg: 'rgba(99,102,241,0.12)', summaryBorder: '#6366f1' },
+            dark_ocean: { name: '🌊 딥 오션', desc: '깊은 바다의 푸른 톤', bg: '#041525', bg2: '#082035', text: '#c8e6f5', textSub: '#6b9fc0', accent: '#0ea5e9', accent2: '#38bdf8', tableBg: '#0a2540', tableHead: '#0c3050', tableBorder: '#164e6e', chartColors: ['#0ea5e9','#38bdf8','#06b6d4','#22d3ee','#67e8f9','#2dd4bf'], summaryBg: 'rgba(14,165,233,0.12)', summaryBorder: '#0ea5e9' },
+            dark_aurora: { name: '🌌 오로라 나이트', desc: '오로라 빛의 환상적 컬러', bg: '#0b0f1a', bg2: '#101828', text: '#d4e4f7', textSub: '#7a8faa', accent: '#22d3ee', accent2: '#a78bfa', tableBg: '#151d30', tableHead: '#1a2540', tableBorder: '#2a3a5a', chartColors: ['#22d3ee','#a78bfa','#34d399','#f472b6','#fbbf24','#fb923c'], summaryBg: 'rgba(34,211,238,0.1)', summaryBorder: '#22d3ee' },
+            dark_neon: { name: '💜 네온 사이버펑크', desc: '강렬한 네온 컬러의 미래 감성', bg: '#0d0017', bg2: '#150025', text: '#f0e0ff', textSub: '#b080d0', accent: '#e040fb', accent2: '#00e5ff', tableBg: '#1a0030', tableHead: '#250045', tableBorder: '#3d0065', chartColors: ['#e040fb','#00e5ff','#76ff03','#ffea00','#ff6e40','#e91e63'], summaryBg: 'rgba(224,64,251,0.12)', summaryBorder: '#e040fb' },
+            dark_emerald: { name: '🌲 다크 에메랄드', desc: '깊은 숲의 고급스러운 그린', bg: '#071210', bg2: '#0d1f1a', text: '#d0f0e0', textSub: '#70a090', accent: '#10b981', accent2: '#34d399', tableBg: '#0f2920', tableHead: '#133525', tableBorder: '#1e4d38', chartColors: ['#10b981','#34d399','#6ee7b7','#2dd4bf','#14b8a6','#059669'], summaryBg: 'rgba(16,185,129,0.12)', summaryBorder: '#10b981' },
+            dark_crimson: { name: '🍷 다크 크림슨', desc: '와인 레드의 중후한 분위기', bg: '#150a0a', bg2: '#201010', text: '#f5ddd0', textSub: '#b07060', accent: '#ef4444', accent2: '#f97316', tableBg: '#2a1515', tableHead: '#351a1a', tableBorder: '#4a2525', chartColors: ['#ef4444','#f97316','#fbbf24','#f87171','#fb923c','#dc2626'], summaryBg: 'rgba(239,68,68,0.12)', summaryBorder: '#ef4444' },
+            // 라이트 계열
+            light_minimal: { name: '⬜ 미니멀 화이트', desc: '깔끔한 흰 배경의 미니멀 디자인', bg: '#ffffff', bg2: '#f8fafc', text: '#1e293b', textSub: '#64748b', accent: '#0f172a', accent2: '#334155', tableBg: '#f1f5f9', tableHead: '#e2e8f0', tableBorder: '#cbd5e1', chartColors: ['#1e293b','#475569','#64748b','#94a3b8','#0ea5e9','#6366f1'], summaryBg: '#f8fafc', summaryBorder: '#cbd5e1' },
+            light_cream: { name: '🍦 크림 & 웜', desc: '따뜻한 크림 톤의 편안한 느낌', bg: '#fffbf5', bg2: '#fef7ed', text: '#44311a', textSub: '#8b6e4e', accent: '#d97706', accent2: '#b45309', tableBg: '#fef3e2', tableHead: '#fde6c4', tableBorder: '#f5d5a5', chartColors: ['#d97706','#b45309','#ea580c','#c2410c','#92400e','#a16207'], summaryBg: '#fef7ed', summaryBorder: '#f5d5a5' },
+            light_sky: { name: '🏔️ 스카이 블루', desc: '맑은 하늘색의 시원한 느낌', bg: '#f0f9ff', bg2: '#e0f2fe', text: '#0c4a6e', textSub: '#0369a1', accent: '#0284c7', accent2: '#0ea5e9', tableBg: '#e0f2fe', tableHead: '#bae6fd', tableBorder: '#7dd3fc', chartColors: ['#0284c7','#0369a1','#0ea5e9','#38bdf8','#0891b2','#0e7490'], summaryBg: '#e0f2fe', summaryBorder: '#7dd3fc' },
+            light_lavender: { name: '💐 라벤더 소프트', desc: '부드러운 보라색의 우아한 느낌', bg: '#faf5ff', bg2: '#f3e8ff', text: '#3b0764', textSub: '#7e22ce', accent: '#9333ea', accent2: '#a855f7', tableBg: '#f3e8ff', tableHead: '#e9d5ff', tableBorder: '#d8b4fe', chartColors: ['#9333ea','#7c3aed','#a855f7','#c084fc','#8b5cf6','#6d28d9'], summaryBg: '#f3e8ff', summaryBorder: '#d8b4fe' },
+            light_mint: { name: '🍃 민트 프레시', desc: '상쾌한 민트색의 청량한 느낌', bg: '#f0fdfa', bg2: '#ecfdf5', text: '#064e3b', textSub: '#047857', accent: '#059669', accent2: '#10b981', tableBg: '#ecfdf5', tableHead: '#d1fae5', tableBorder: '#a7f3d0', chartColors: ['#059669','#047857','#10b981','#34d399','#0d9488','#14b8a6'], summaryBg: '#ecfdf5', summaryBorder: '#a7f3d0' },
+            light_peach: { name: '🍑 피치 블러쉬', desc: '따뜻한 피치톤의 부드러운 느낌', bg: '#fff5f5', bg2: '#fff1f2', text: '#4c1d1d', textSub: '#b44a4a', accent: '#e11d48', accent2: '#f43f5e', tableBg: '#ffe4e6', tableHead: '#fecdd3', tableBorder: '#fda4af', chartColors: ['#e11d48','#f43f5e','#fb7185','#f472b6','#ec4899','#be123c'], summaryBg: '#fff1f2', summaryBorder: '#fda4af' },
+            // 프로페셔널 계열
+            pro_finance: { name: '📈 파이낸스 블루', desc: '금융 리포트 스타일의 신뢰감 있는 블루', bg: '#f8fafc', bg2: '#f1f5f9', text: '#0f2b46', textSub: '#4a6f8a', accent: '#1d4ed8', accent2: '#2563eb', tableBg: '#eff6ff', tableHead: '#1d4ed8', tableBorder: '#bfdbfe', chartColors: ['#1d4ed8','#2563eb','#3b82f6','#60a5fa','#059669','#dc2626'], summaryBg: '#eff6ff', summaryBorder: '#93c5fd', tableHeadText: '#ffffff' },
+            pro_corporate: { name: '🏢 코퍼레이트 네이비', desc: '비즈니스 프레젠테이션용 네이비 톤', bg: '#0f172a', bg2: '#1e293b', text: '#f1f5f9', textSub: '#94a3b8', accent: '#f59e0b', accent2: '#fbbf24', tableBg: '#1e293b', tableHead: '#172554', tableBorder: '#334155', chartColors: ['#f59e0b','#fbbf24','#3b82f6','#60a5fa','#10b981','#f87171'], summaryBg: 'rgba(245,158,11,0.1)', summaryBorder: '#f59e0b' },
+            pro_consulting: { name: '📊 컨설팅 그레이', desc: 'McKinsey 스타일 깔끔한 그레이', bg: '#ffffff', bg2: '#f9fafb', text: '#111827', textSub: '#6b7280', accent: '#374151', accent2: '#6b7280', tableBg: '#f9fafb', tableHead: '#111827', tableBorder: '#d1d5db', chartColors: ['#111827','#374151','#6b7280','#2563eb','#dc2626','#16a34a'], summaryBg: '#f3f4f6', summaryBorder: '#d1d5db', tableHeadText: '#ffffff' },
+            pro_tech: { name: '🖥️ 테크 모던', desc: '테크 기업 스타일의 모던한 디자인', bg: '#18181b', bg2: '#27272a', text: '#fafafa', textSub: '#a1a1aa', accent: '#06b6d4', accent2: '#22d3ee', tableBg: '#27272a', tableHead: '#0e7490', tableBorder: '#3f3f46', chartColors: ['#06b6d4','#22d3ee','#8b5cf6','#a78bfa','#f472b6','#34d399'], summaryBg: 'rgba(6,182,212,0.1)', summaryBorder: '#06b6d4', tableHeadText: '#ffffff' },
+            pro_academic: { name: '🎓 아카데미 클래식', desc: '학술 논문 스타일의 격조 있는 디자인', bg: '#fffef5', bg2: '#fefdf0', text: '#1a1a1a', textSub: '#555555', accent: '#7c2d12', accent2: '#9a3412', tableBg: '#fef9e7', tableHead: '#7c2d12', tableBorder: '#d4c5a0', chartColors: ['#7c2d12','#9a3412','#1e40af','#15803d','#a16207','#6b21a8'], summaryBg: '#fef9e7', summaryBorder: '#d4c5a0', tableHeadText: '#ffffff' },
+            // 크리에이티브 계열
+            creative_gradient: { name: '🌈 그라데이션 팝', desc: '생동감 넘치는 그라데이션', bg: 'linear-gradient(135deg, #1a1040 0%, #0a2540 50%, #0a3020 100%)', bg2: '#151030', text: '#f0f0ff', textSub: '#a0a0cc', accent: '#f472b6', accent2: '#818cf8', tableBg: 'rgba(255,255,255,0.05)', tableHead: 'rgba(244,114,182,0.3)', tableBorder: 'rgba(255,255,255,0.1)', chartColors: ['#f472b6','#818cf8','#34d399','#fbbf24','#fb923c','#22d3ee'], summaryBg: 'rgba(244,114,182,0.08)', summaryBorder: '#f472b6' },
+            creative_retro: { name: '📟 레트로 웨이브', desc: '80년대 레트로 감성의 비비드 컬러', bg: '#1a0030', bg2: '#250040', text: '#ffe0f0', textSub: '#c090b0', accent: '#ff6ec7', accent2: '#00ffff', tableBg: '#2a0050', tableHead: '#3d0070', tableBorder: '#5a0090', chartColors: ['#ff6ec7','#00ffff','#ffff00','#ff3366','#66ff66','#ff9900'], summaryBg: 'rgba(255,110,199,0.12)', summaryBorder: '#ff6ec7' },
+            creative_sunset: { name: '🌅 선셋 글로우', desc: '노을빛의 따뜻하고 몽환적인 분위기', bg: '#1c0f0a', bg2: '#2a150d', text: '#fff0e0', textSub: '#c0906a', accent: '#f97316', accent2: '#fb923c', tableBg: '#2a1a10', tableHead: '#3a2015', tableBorder: '#5a3525', chartColors: ['#f97316','#fb923c','#fbbf24','#ef4444','#f472b6','#a855f7'], summaryBg: 'rgba(249,115,22,0.12)', summaryBorder: '#f97316' },
+            creative_forest: { name: '🌿 포레스트 그린', desc: '자연의 숲 속 느낌', bg: '#0a1a0a', bg2: '#102010', text: '#d0f0d0', textSub: '#80b080', accent: '#4ade80', accent2: '#86efac', tableBg: '#152a15', tableHead: '#1a3a1a', tableBorder: '#2a5a2a', chartColors: ['#4ade80','#86efac','#a3e635','#84cc16','#22c55e','#2dd4bf'], summaryBg: 'rgba(74,222,128,0.1)', summaryBorder: '#4ade80' },
+            creative_candy: { name: '🍬 캔디 파스텔', desc: '파스텔톤의 달콤한 분위기', bg: '#fef6ff', bg2: '#fdf2f8', text: '#5b2170', textSub: '#9b5ab0', accent: '#d946ef', accent2: '#e879f9', tableBg: '#fdf2f8', tableHead: '#f0d0ff', tableBorder: '#e8b4fe', chartColors: ['#d946ef','#e879f9','#f472b6','#fb923c','#a78bfa','#38bdf8'], summaryBg: '#fdf2f8', summaryBorder: '#e8b4fe' },
+            creative_monochrome: { name: '🖤 모노크롬', desc: '흑백 톤의 세련된 디자인', bg: '#0a0a0a', bg2: '#141414', text: '#e5e5e5', textSub: '#a0a0a0', accent: '#ffffff', accent2: '#d4d4d4', tableBg: '#1a1a1a', tableHead: '#2a2a2a', tableBorder: '#3a3a3a', chartColors: ['#ffffff','#d4d4d4','#a3a3a3','#737373','#525252','#404040'], summaryBg: 'rgba(255,255,255,0.05)', summaryBorder: '#404040' },
+            // 특수 테마
+            special_newspaper: { name: '📰 뉴스페이퍼', desc: '클래식 신문 스타일', bg: '#f5f0e8', bg2: '#efe8db', text: '#1a1a1a', textSub: '#555555', accent: '#1a1a1a', accent2: '#333333', tableBg: '#efe8db', tableHead: '#d4cbb8', tableBorder: '#c4b8a0', chartColors: ['#1a1a1a','#4a4a4a','#7a7a7a','#2563eb','#dc2626','#16a34a'], summaryBg: '#efe8db', summaryBorder: '#c4b8a0' },
+            special_terminal: { name: '💻 터미널 해커', desc: '터미널/해커 스타일 모노스페이스', bg: '#0a0a0a', bg2: '#0d0d0d', text: '#00ff41', textSub: '#00aa2a', accent: '#00ff41', accent2: '#39ff14', tableBg: '#0f0f0f', tableHead: '#1a1a1a', tableBorder: '#003300', chartColors: ['#00ff41','#39ff14','#00e536','#00cc2b','#00b321','#009a17'], summaryBg: 'rgba(0,255,65,0.05)', summaryBorder: '#003300' },
+            special_blueprint: { name: '📐 블루프린트', desc: '설계 도면 스타일의 블루', bg: '#0a1628', bg2: '#0d1e3a', text: '#88bbee', textSub: '#5588bb', accent: '#4dabf7', accent2: '#74c0fc', tableBg: '#0d1e3a', tableHead: '#132e55', tableBorder: '#1e4070', chartColors: ['#4dabf7','#74c0fc','#a5d8ff','#339af0','#228be6','#1c7ed6'], summaryBg: 'rgba(77,171,247,0.08)', summaryBorder: '#1e4070' },
+            special_magazine: { name: '📖 매거진 에디토리얼', desc: '세련된 매거진 레이아웃 스타일', bg: '#ffffff', bg2: '#fafafa', text: '#1a1a1a', textSub: '#777777', accent: '#e11d48', accent2: '#f43f5e', tableBg: '#fafafa', tableHead: '#e11d48', tableBorder: '#e5e5e5', chartColors: ['#e11d48','#1a1a1a','#6b7280','#2563eb','#16a34a','#d97706'], summaryBg: '#fff5f7', summaryBorder: '#fda4af', tableHeadText: '#ffffff' },
+            special_infographic: { name: '📊 인포그래픽', desc: '시각적으로 돋보이는 인포그래픽 스타일', bg: '#0f172a', bg2: '#1e293b', text: '#f1f5f9', textSub: '#94a3b8', accent: '#f59e0b', accent2: '#06b6d4', tableBg: '#1e293b', tableHead: '#f59e0b', tableBorder: '#334155', chartColors: ['#f59e0b','#06b6d4','#8b5cf6','#ef4444','#10b981','#f472b6'], summaryBg: 'rgba(245,158,11,0.1)', summaryBorder: '#f59e0b', tableHeadText: '#0f172a' }
+        };
+
+        // ===================== 테마 관련 함수 =====================
+        function isStyledFormat(fmt) {
+            return ['auto','html','docx','pdf','jsx'].includes(fmt);
+        }
+
+        function updateThemeVisibility() {
+            const section = document.getElementById('themeSection');
+            if (isStyledFormat(currentFileFormat)) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+                // 스타일 미적용 형식으로 변경시 테마 프리뷰 숨김
+                hideThemePreview();
+            }
+        }
+
+        function onThemeChange(value) {
+            currentTheme = value;
+            updateThemeSwatches(value);
+            if (value === 'auto') {
+                hideThemePreview();
+            } else {
+                renderThemePreview();
+            }
+            updateThemeBadge();
+            updateOutputDescription();
+        }
+
+        function updateThemeSwatches(themeId) {
+            const container = document.getElementById('themeSwatches');
+            const theme = THEMES[themeId];
+            if (!theme || themeId === 'auto') { container.innerHTML = ''; return; }
+            const colors = [theme.accent, theme.accent2, theme.chartColors[2] || theme.accent];
+            container.innerHTML = colors.map(c => `<span class="theme-swatch" style="background:${c};"></span>`).join('');
+        }
+
+        function updateThemeBadge() {
+            const badge = document.getElementById('themeBadge');
+            if (currentTheme === 'auto' || !isStyledFormat(currentFileFormat)) {
+                badge.classList.add('hidden');
+            } else {
+                const theme = THEMES[currentTheme];
+                if (theme) {
+                    badge.textContent = '🎨 ' + theme.name.replace(/^.{1,2}\s*/, '');
+                    badge.classList.remove('hidden');
+                }
+            }
+        }
+
+        function hideThemePreview() {
+            document.getElementById('themePreview').classList.add('hidden');
+            // 이전 프리뷰가 안보이면 placeholder를 복원 (output이 비어있을때만)
+            if (!document.getElementById('output').textContent.trim()) {
+                document.getElementById('placeholder').classList.remove('hidden');
+            }
+        }
+
+        function renderThemePreview() {
+            const themeId = currentTheme;
+            if (themeId === 'auto') { hideThemePreview(); return; }
+            const theme = THEMES[themeId];
+            if (!theme) return;
+
+            document.getElementById('placeholder').classList.add('hidden');
+            const previewDiv = document.getElementById('themePreview');
+            previewDiv.classList.remove('hidden');
+            // re-trigger animation
+            previewDiv.classList.remove('theme-animate-in');
+            void previewDiv.offsetWidth;
+            previewDiv.classList.add('theme-animate-in');
+
+            const card = document.getElementById('themePreviewCard');
+            const bgStyle = theme.bg.startsWith('linear') ? `background: ${theme.bg};` : `background: ${theme.bg};`;
+            card.style.cssText = bgStyle + ` color: ${theme.text}; border: 1px solid ${theme.tableBorder};`;
+
+            document.getElementById('previewTitle').style.color = theme.accent;
+            document.getElementById('previewSubtitle').style.color = theme.textSub;
+            document.getElementById('previewTableTitle').style.color = theme.accent;
+            document.getElementById('previewChartTitle').style.color = theme.accent;
+            document.getElementById('previewLineChartTitle').style.color = theme.accent;
+            document.getElementById('previewFooter').style.color = theme.textSub;
+
+            // 요약박스
+            const summaryBox = document.getElementById('previewSummaryBox');
+            summaryBox.style.cssText = `background:${theme.summaryBg}; border-left: 3px solid ${theme.summaryBorder}; color:${theme.text}; font-size:12px; border-radius:8px; padding:12px;`;
+
+            // 테이블
+            renderPreviewTable(theme);
+            // 차트
+            renderPreviewCharts(theme);
+        }
+
+        function renderPreviewTable(theme) {
+            const headers = ['지수', '현재가', '등락', '등락률'];
+            const data = [
+                ['S&P 500', '5,987.15', '+42.30', '+0.71%'],
+                ['나스닥', '19,234.67', '+185.22', '+0.97%'],
+                ['다우존스', '43,821.50', '+125.60', '+0.29%'],
+                ['필라델피아 반도체', '5,423.80', '+89.45', '+1.68%']
+            ];
+            const headText = theme.tableHeadText || theme.text;
+            const thead = document.getElementById('previewThead');
+            thead.innerHTML = headers.map(h => `<th style="background:${theme.tableHead}; color:${headText}; border:1px solid ${theme.tableBorder}; padding:6px 10px; font-size:11px;">${h}</th>`).join('');
+            const tbody = document.getElementById('previewTbody');
+            tbody.innerHTML = data.map((row, i) => {
+                const rowBg = i % 2 === 0 ? theme.tableBg : (theme.bg2 || theme.bg);
+                return `<tr>${row.map((cell, j) => {
+                    let color = theme.text;
+                    if (j >= 2 && cell.startsWith('+')) color = '#22c55e';
+                    if (j >= 2 && cell.startsWith('-')) color = '#ef4444';
+                    return `<td style="background:${rowBg}; color:${color}; border:1px solid ${theme.tableBorder}; padding:6px 10px; font-size:11px;">${cell}</td>`;
+                }).join('')}</tr>`;
+            }).join('');
+        }
+
+        function renderPreviewCharts(theme) {
+            const animate = chartAnimationEnabled;
+            const animDuration = animate ? 1200 : 0;
+            const animEasing = 'easeOutQuart';
+
+            // Destroy old charts
+            if (previewBarChart) { previewBarChart.destroy(); previewBarChart = null; }
+            if (previewLineChart) { previewLineChart.destroy(); previewLineChart = null; }
+
+            // 바 차트 - 섹터별 수익률
+            const barCtx = document.getElementById('previewChart').getContext('2d');
+            previewBarChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['AI/반도체', '소프트웨어', '헬스케어', '에너지', '금융', '소비재'],
+                    datasets: [{
+                        label: '주간 수익률 (%)',
+                        data: [4.2, 2.8, 1.5, -0.3, 1.1, 0.7],
+                        backgroundColor: theme.chartColors.map(c => c + 'cc'),
+                        borderColor: theme.chartColors,
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: animate ? { duration: animDuration, easing: animEasing } : false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true }
+                    },
+                    scales: {
+                        x: { ticks: { color: theme.textSub, font: { size: 10 } }, grid: { color: theme.tableBorder + '40' } },
+                        y: { ticks: { color: theme.textSub, font: { size: 10 }, callback: v => v + '%' }, grid: { color: theme.tableBorder + '40' } }
+                    }
+                }
+            });
+
+            // 라인 차트 - S&P 500 추이
+            const lineCtx = document.getElementById('previewLineChart').getContext('2d');
+            const lineData = [5820, 5855, 5890, 5870, 5920, 5945, 5987];
+            const gradient = lineCtx.createLinearGradient(0, 0, 0, 160);
+            gradient.addColorStop(0, theme.accent + '40');
+            gradient.addColorStop(1, theme.accent + '00');
+
+            previewLineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['월', '화', '수', '목', '금', '월', '화'],
+                    datasets: [{
+                        label: 'S&P 500',
+                        data: lineData,
+                        borderColor: theme.accent,
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: animate ? 0.4 : 0,
+                        pointRadius: animate ? 4 : 3,
+                        pointBackgroundColor: theme.accent,
+                        pointBorderColor: theme.bg.startsWith('linear') ? '#0f172a' : theme.bg,
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: animate ? {
+                        duration: animDuration + 400,
+                        easing: 'easeInOutQuart',
+                        delay: (ctx) => ctx.dataIndex * 100
+                    } : false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: theme.textSub, font: { size: 10 } }, grid: { color: theme.tableBorder + '30' } },
+                        y: { ticks: { color: theme.textSub, font: { size: 10 } }, grid: { color: theme.tableBorder + '30' }, suggestedMin: 5800 }
+                    }
+                }
+            });
+        }
 
         function getCurrentDate() {
             const now = new Date();
@@ -491,6 +827,7 @@
             });
             updateOutputDescription();
             updateBadges();
+            updateThemeVisibility();
         }
 
         function setDocLayout(layout) {
@@ -512,7 +849,12 @@
         function updateOutputDescription() {
             const formatTexts = { 'auto': '자동', 'docx': '.docx', 'md': '.md', 'html': '.html', 'pdf': '.pdf', 'txt': '.txt', 'jsx': '.jsx' };
             const layoutTexts = { 'auto': '자동', 'pc': 'PC', 'mobile': 'Mobile' };
-            document.getElementById('outputDescription').textContent = `📁 ${formatTexts[currentFileFormat]} 파일 형식 | 📐 ${layoutTexts[currentDocLayout]} 레이아웃`;
+            let desc = `📁 ${formatTexts[currentFileFormat]} 파일 형식 | 📐 ${layoutTexts[currentDocLayout]} 레이아웃`;
+            if (isStyledFormat(currentFileFormat) && currentTheme !== 'auto') {
+                const theme = THEMES[currentTheme];
+                if (theme) desc += ` | 🎨 ${theme.name.replace(/^.{1,2}\s*/, '')}`;
+            }
+            document.getElementById('outputDescription').textContent = desc;
         }
 
         function updateBadges() {
@@ -698,6 +1040,24 @@
             return quizInstructions;
         }
 
+        // 테마 프롬프트 텍스트
+        function getThemeText() {
+            if (currentTheme === 'auto') return '';
+            const theme = THEMES[currentTheme];
+            if (!theme) return '';
+            const isDark = theme.bg.startsWith('#0') || theme.bg.startsWith('#1') || theme.bg.startsWith('linear');
+            const colorList = theme.chartColors.slice(0, 4).join(', ');
+            return `\n🎨 **[필수] 문서 테마: ${theme.name}**
+- 설명: ${theme.desc}
+- 배경색: ${theme.bg} / 보조배경: ${theme.bg2}
+- 텍스트: ${theme.text} / 보조텍스트: ${theme.textSub}
+- 메인 강조색: ${theme.accent} / 보조 강조색: ${theme.accent2}
+- 차트/그래프 컬러: ${colorList}
+- 테이블 배경: ${theme.tableBg} / 헤더: ${theme.tableHead} / 테두리: ${theme.tableBorder}
+- 위 컬러 스킴을 문서 전체에 일관되게 적용해주세요.
+`;
+        }
+
         function getPromptByMode(mode, videoTitle, youtubeUrl, transcript) {
             const header = `**Title:** ${videoTitle || '[영상 제목]'}
 **Link:** ${youtubeUrl || '[유튜브 링크]'}
@@ -718,7 +1078,7 @@
             const densityInstruction = `\n📊 **정리 밀도:** ${getDensityText()}\n`;
             const explainInstruction = `\n📖 **설명 수준:** ${getExplainText()}\n`;
 
-            const outputOptions = formatInstruction + layoutInstruction + densityInstruction + explainInstruction;
+            const outputOptions = formatInstruction + layoutInstruction + densityInstruction + explainInstruction + getThemeText();
 
             const chartAnimationInstruction = chartAnimationEnabled 
                 ? `\n9. Chart.js 사용 시 내장된 애니메이션 옵션을 활용하여 차트에 동적 효과 적용 (예: tension, animation duration, easing 등)\n` 
@@ -779,8 +1139,10 @@ ${outputOptions}
             if (!content) return;
             document.getElementById('output').textContent = content;
             document.getElementById('placeholder').classList.add('hidden');
-            ['formatBadge', 'layoutBadge', 'densityBadge', 'explainBadge'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+            document.getElementById('themePreview').classList.add('hidden');
+            ['formatBadge', 'layoutBadge', 'themeBadge', 'densityBadge', 'explainBadge'].forEach(id => document.getElementById(id).classList.remove('hidden'));
             updateQuizBadge();
+            updateThemeBadge();
         }
 
         function buildDocumentContent() {
@@ -799,8 +1161,10 @@ ${outputOptions}
             if (!content) return;
             document.getElementById('output').textContent = content;
             document.getElementById('placeholder').classList.add('hidden');
-            ['formatBadge', 'layoutBadge', 'densityBadge', 'explainBadge'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+            document.getElementById('themePreview').classList.add('hidden');
+            ['formatBadge', 'layoutBadge', 'themeBadge', 'densityBadge', 'explainBadge'].forEach(id => document.getElementById(id).classList.remove('hidden'));
             updateQuizBadge();
+            updateThemeBadge();
             try { await navigator.clipboard.writeText(content); }
             catch (err) { const ta = document.createElement('textarea'); ta.value = content; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
             document.getElementById('runModal').classList.remove('hidden');
@@ -825,7 +1189,7 @@ ${outputOptions}
             document.getElementById('transcript').value = '';
             document.getElementById('output').textContent = '';
             document.getElementById('placeholder').classList.remove('hidden');
-            ['formatBadge', 'layoutBadge', 'densityBadge', 'explainBadge', 'quizBadge', 'errorMsg', 'successMsg', 'loadingMsg', 'fileInfo'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['formatBadge', 'layoutBadge', 'themeBadge', 'densityBadge', 'explainBadge', 'quizBadge', 'errorMsg', 'successMsg', 'loadingMsg', 'fileInfo'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('transcriptInfo').textContent = '';
             document.getElementById('fileInput').value = '';
             document.getElementById('modalFileInput').value = '';
@@ -848,6 +1212,12 @@ ${outputOptions}
             // Chart.js 애니메이션 초기화
             chartAnimationEnabled = true;
             document.getElementById('chartAnimationToggle').checked = true;
+            // 테마 초기화
+            currentTheme = 'auto';
+            document.getElementById('themeSelect').value = 'auto';
+            document.getElementById('themeSwatches').innerHTML = '';
+            hideThemePreview();
+            updateThemeBadge();
             closeResetModal();
         }
 
