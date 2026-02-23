@@ -1081,7 +1081,35 @@
             const outputOptions = formatInstruction + layoutInstruction + densityInstruction + explainInstruction + getThemeText();
 
             const chartAnimationInstruction = chartAnimationEnabled 
-                ? `\n9. Chart.js 사용 시 내장된 애니메이션 옵션을 활용하여 차트에 동적 효과 적용 (예: tension, animation duration, easing 등)\n` 
+                ? `
+9. **[필수] Chart.js 애니메이션 효과 적용:**
+   - 모든 Chart.js 차트에 반드시 아래와 같은 애니메이션 옵션을 포함하세요:
+   \`\`\`javascript
+   // 모든 차트 공통 옵션에 추가
+   animation: {
+     duration: 1500,
+     easing: 'easeInOutQuart'
+   },
+   // 라인 차트: tension으로 부드러운 곡선 + 포인트 순차 등장
+   datasets: [{ tension: 0.4 }],
+   animations: {
+     y: { from: (ctx) => ctx.chart.scales.y.max }
+   },
+   // 바 차트: 아래에서 위로 올라오는 효과
+   animations: {
+     y: { from: 0 }
+   },
+   // 도넛/파이: 회전 효과
+   animation: {
+     animateRotate: true,
+     animateScale: true,
+     duration: 1500
+   }
+   \`\`\`
+   - 차트별로 적합한 애니메이션 타입을 선택하여 적용
+   - easing 옵션: 'easeInOutQuart', 'easeOutBounce', 'easeOutElastic' 등 시각적으로 인상적인 효과 사용
+   - 여러 차트가 있을 경우 각 차트마다 다른 duration/delay를 주어 순차적으로 나타나게 구성
+` 
                 : '';
 
             const commonRequirements = `
