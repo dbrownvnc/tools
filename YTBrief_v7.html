@@ -1067,7 +1067,7 @@
 CSS의 fade-in(opacity:0) 때문에 차트가 보이기 전에 애니메이션이 끝나는 문제를 방지하기 위해,
 **반드시 아래 패턴 그대로** 구현하세요. 임의로 변경하지 마세요.
 
-**[1단계] CSS — 차트 canvas를 숨겨두기:**
+**[1단계] CSS — 차트 컨테이너 크기 제한 + canvas 숨기기:**
 \`\`\`css
 .fade-in {
   opacity: 0;
@@ -1078,9 +1078,14 @@ CSS의 fade-in(opacity:0) 때문에 차트가 보이기 전에 애니메이션�
   opacity: 1;
   transform: translateY(0);
 }
+.chart-container {
+  position: relative;
+  max-height: 340px;   /* 차트가 과도하게 늘어나지 않도록 제한 */
+}
 .chart-container canvas {
   opacity: 0;
   transition: opacity 0.4s ease;
+  max-height: 300px;   /* canvas 자체도 제한 */
 }
 .chart-container.chart-ready canvas {
   opacity: 1;
@@ -1090,9 +1095,10 @@ CSS의 fade-in(opacity:0) 때문에 차트가 보이기 전에 애니메이션�
 **[2단계] HTML — 차트를 .chart-container.fade-in 으로 감싸기:**
 \`\`\`html
 <div class="chart-container fade-in">
-  <canvas id="myChart1" height="280"></canvas>
+  <canvas id="myChart1" height="220"></canvas>
 </div>
 \`\`\`
+※ canvas height 속성은 200~260 사이로 설정 (280 이상 금지)
 
 **[3단계] JS — chartConfigs 딕셔너리 + 2개의 IntersectionObserver:**
 \`\`\`javascript
@@ -1115,6 +1121,8 @@ chartConfigs['myChart1'] = () => {
     type: 'bar',
     data: { /* ... */ },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       animation: { duration: 1500, easing: 'easeInOutQuart', delay: (ctx) => ctx.dataIndex * 150 },
       animations: { y: { from: 0 } }
     }
@@ -1149,7 +1157,11 @@ document.querySelectorAll('.chart-container').forEach(el => chartObs.observe(el)
 - 도넛/파이: \`animation: { animateRotate: true, animateScale: true, duration: 2000, easing: 'easeInOutQuart' }\`
 
 **체크리스트:**
-✅ CSS에 .chart-container canvas { opacity:0 } 와 .chart-container.chart-ready canvas { opacity:1 } 존재
+✅ CSS에 .chart-container { max-height: 340px } 존재
+✅ CSS에 .chart-container canvas { opacity:0; max-height: 300px } 존재
+✅ CSS에 .chart-container.chart-ready canvas { opacity:1 } 존재
+✅ 모든 canvas height 속성이 200~260 사이 (280 이상 금지)
+✅ 모든 차트 options에 responsive: true, maintainAspectRatio: false 포함
 ✅ 모든 차트 canvas가 \`<div class="chart-container fade-in">\` 안에 있음
 ✅ 모든 차트가 chartConfigs['canvasId'] = () => { new Chart(...) }; 형태로 정의됨
 ✅ new Chart()를 스크립트에서 직접 호출하지 않음 (chartConfigs에만 저장)
@@ -1208,14 +1220,15 @@ ${transcript}
 ⚠️⚠️⚠️ **[최종 확인 — 반드시 지켜주세요]** ⚠️⚠️⚠️
 **Chart.js 애니메이션이 사용자에게 보이려면 아래 패턴을 반드시 사용하세요:**
 
-1. CSS: \`.chart-container canvas { opacity: 0 }\` + \`.chart-container.chart-ready canvas { opacity: 1 }\`
-2. HTML: 모든 차트 canvas를 \`<div class="chart-container fade-in"><canvas id="..."></div>\`로 감싸기
-3. JS: \`const chartConfigs = {};\` 딕셔너리에 \`chartConfigs['canvasId'] = () => { new Chart(...) };\` 로 정의만 하기
-4. JS: chartObs IntersectionObserver가 .chart-container 감시 → 보이면 \`setTimeout 200ms\` 후 함수 호출 → \`.chart-ready\` 추가 → delete
-5. JS: fadeObs IntersectionObserver가 .fade-in 감시 → 보이면 \`.visible\` 추가
+1. CSS: \`.chart-container { max-height: 340px }\` + \`.chart-container canvas { opacity: 0; max-height: 300px }\` + \`.chart-ready canvas { opacity: 1 }\`
+2. HTML: \`<div class="chart-container fade-in"><canvas id="..." height="220"></canvas></div>\` (height 200~260, 280 이상 금지)
+3. JS: 모든 차트 options에 \`responsive: true, maintainAspectRatio: false\` 필수
+4. JS: \`chartConfigs['id'] = () => { new Chart(...) };\` 로 정의만 하기 (직접 호출 금지)
+5. JS: chartObs가 .chart-container 감시 → 보이면 200ms 후 함수 호출 → \`.chart-ready\` 추가 → delete
+6. JS: fadeObs가 .fade-in 감시 → 보이면 \`.visible\` 추가
 
-❌ 절대 금지: new Chart()를 스크립트에서 직접 호출 | animation: false 사용
-문서 완성 전 위 5개 항목이 모두 적용되었는지 다시 한번 확인해주세요.
+❌ 절대 금지: new Chart() 직접 호출 | animation: false | canvas height 280 이상
+문서 완성 전 위 6개 항목이 모두 적용되었는지 다시 한번 확인해주세요.
 ` : '';
 
             if (mode === 'auto') {
