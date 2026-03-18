@@ -53,16 +53,13 @@
 </head>
 <body class="min-h-screen p-4 md:p-6">
     <div class="max-w-6xl mx-auto">
-        <!-- Header -->
         <div class="text-center mb-6">
             <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">📺 유튜브 영상 정리 도구</h1>
             <p class="text-slate-400 text-sm">내용에 맞는 전문 분석 문서 자동 생성 → Claude 자동 실행</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <!-- 입력 영역 -->
             <div class="space-y-4">
-                <!-- 유튜브 URL 입력 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <label class="block text-sm font-medium text-slate-300 mb-2">🔗 유튜브 링크</label>
                     <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -71,13 +68,11 @@
                     <p id="successMsg" class="text-green-400 text-sm mt-2 hidden"></p>
                 </div>
 
-                <!-- 영상 제목 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <label class="block text-sm font-medium text-slate-300 mb-2">📌 영상 제목</label>
                     <input type="text" id="videoTitle" placeholder="영상 제목이 자동으로 입력됩니다 (또는 직접 입력)" class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
 
-                <!-- 분석 모드 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <label class="block text-sm font-medium text-slate-300 mb-3">🎯 분석 모드</label>
                     <div class="grid grid-cols-3 gap-2">
@@ -94,7 +89,6 @@
                     <p id="modeDescription" class="text-slate-400 text-xs mt-2">💡 Claude가 내용을 파악하여 자동으로 분석 방향을 결정합니다.</p>
                 </div>
 
-                <!-- 출력 옵션: 파일 형식 + 레이아웃 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -138,13 +132,21 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="flex items-center gap-2 mt-3 p-2 bg-slate-900/50 rounded-lg">
                         <input type="checkbox" id="chartAnimationToggle" class="checkbox-custom" checked onchange="chartAnimationEnabled = this.checked; renderThemePreview();" />
                         <label for="chartAnimationToggle" class="text-slate-300 text-xs cursor-pointer">
                             📊 Chart.js에 내장된 애니메이션 옵션
                         </label>
                     </div>
-                    <!-- 테마 선택 드롭다운 -->
+                    
+                    <div class="flex items-center gap-2 mt-2 p-2 bg-slate-900/50 rounded-lg">
+                        <input type="checkbox" id="visSimToggle" class="checkbox-custom" onchange="toggleVisSim(this.checked)" />
+                        <label for="visSimToggle" class="text-slate-300 text-xs cursor-pointer">
+                            🕹️ 시각화 & 시뮬레이션 적용
+                        </label>
+                    </div>
+                    
                     <div id="themeSection" class="mt-3 hidden">
                         <label class="block text-sm font-medium text-slate-300 mb-2">🎨 문서 테마</label>
                         <div class="flex items-center gap-2">
@@ -196,10 +198,8 @@
                     <p id="outputDescription" class="text-slate-400 text-xs mt-3">📁 자동 파일 형식 | 📐 자동 레이아웃</p>
                 </div>
 
-                <!-- 정리 밀도 + 설명 수준 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- 정리 밀도 -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">📊 정리 밀도</label>
                             <div class="space-y-2">
@@ -212,7 +212,6 @@
                                 <p id="densityLabel" class="text-purple-400 text-xs text-center font-medium">📊 기본 (상세 정리)</p>
                             </div>
                         </div>
-                        <!-- 설명 수준 -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">📖 설명 수준</label>
                             <div class="space-y-2">
@@ -228,7 +227,6 @@
                     </div>
                 </div>
 
-                <!-- 시험문제 출제 옵션 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <div class="flex items-center justify-between mb-3">
                         <label class="text-sm font-medium text-slate-300">📝 시험문제 출제</label>
@@ -256,7 +254,6 @@
                     <p id="quizDescription" class="text-slate-400 text-xs mt-2">분석 문서 작성 후 내용 기반 시험문제를 추가로 생성합니다.</p>
                 </div>
 
-                <!-- 자막 입력 -->
                 <div class="bg-slate-800 rounded-xl p-4 md:p-5 border border-slate-700">
                     <div class="flex items-center justify-between mb-2">
                         <label class="block text-sm font-medium text-slate-300">📝 자막 내용</label>
@@ -282,7 +279,6 @@
                     <p id="transcriptInfo" class="text-slate-500 text-xs mt-2"></p>
                 </div>
 
-                <!-- 버튼 그룹 -->
                 <div class="space-y-3">
                     <button onclick="runWithClaude()" class="w-full px-6 py-4 claude-btn text-white font-bold rounded-xl transition-all text-lg flex items-center justify-center gap-2">
                         🚀 Claude에서 분석 실행
@@ -295,7 +291,6 @@
                 </div>
             </div>
 
-            <!-- 출력 영역 -->
             <div class="bg-slate-800 rounded-xl border border-slate-700 flex flex-col h-fit lg:h-auto">
                 <div class="flex items-center justify-between px-4 md:px-5 py-3 border-b border-slate-700">
                     <h2 class="text-sm font-medium text-slate-300">📋 생성될 문서 미리보기</h2>
@@ -306,11 +301,11 @@
                         <span id="densityBadge" class="px-2 py-1 bg-purple-600/20 text-purple-400 text-xs rounded hidden">기본</span>
                         <span id="explainBadge" class="px-2 py-1 bg-cyan-600/20 text-cyan-400 text-xs rounded hidden">기본</span>
                         <span id="quizBadge" class="px-2 py-1 bg-orange-600/20 text-orange-400 text-xs rounded hidden">시험 10문제</span>
+                        <span id="visSimBadge" class="px-2 py-1 bg-pink-600/20 text-pink-400 text-xs rounded hidden">시각화&시뮬레이션</span>
                     </div>
                 </div>
                 <div class="flex-1 p-4 md:p-5 overflow-auto custom-scrollbar" style="max-height: 700px;">
                     <pre id="output" class="text-sm text-slate-300 whitespace-pre-wrap font-mono leading-relaxed"></pre>
-                    <!-- 테마 미리보기 영역 -->
                     <div id="themePreview" class="hidden theme-animate-in">
                         <div id="themePreviewCard" class="theme-preview-card p-5" style="min-height: 400px;">
                             <h3 id="previewTitle" class="text-lg font-bold mb-1">📊 미국 증시 동향 분석 리포트</h3>
@@ -364,7 +359,6 @@
         </div>
     </div>
 
-    <!-- 자막 가져오기 모달 -->
     <div id="transcriptModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
@@ -442,7 +436,6 @@
         </div>
     </div>
 
-    <!-- 실행 안내 모달 -->
     <div id="runModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 max-w-md w-full overflow-hidden">
             <div class="p-6 text-center">
@@ -460,7 +453,6 @@
         </div>
     </div>
 
-    <!-- 리셋 확인 모달 -->
     <div id="resetModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 max-w-sm w-full overflow-hidden">
             <div class="p-6 text-center">
@@ -488,6 +480,19 @@
         let currentTheme = 'auto';
         let previewBarChart = null;
         let previewLineChart = null;
+
+        // 시각화&시뮬레이션 상태 변수
+        let visSimEnabled = false;
+
+        function toggleVisSim(checked) {
+            visSimEnabled = checked;
+            const badge = document.getElementById('visSimBadge');
+            if (checked) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
 
         // ===================== 테마 데이터 =====================
         const THEMES = {
@@ -1231,12 +1236,14 @@ ${transcript}
 문서 완성 전 위 6개 항목이 모두 적용되었는지 다시 한번 확인해주세요.
 ` : '';
 
+            const visSimPrompt = visSimEnabled ? `\n\n📌 분석 내용을 바탕으로 가능한 부분을 시각화와 시뮬레이션화 해줘.` : '';
+
             if (mode === 'auto') {
                 return header + `아래 내용을 분석해주세요.
 ${outputOptions}
 ⚠️ **중요: 분석 방향 자동 판단**
 
-먼저 아래 자막 내용을 읽고, 주제를 파악해주세요:
+먼저 아래 자막 내용을 읽고, 주제 파악해주세요:
 
 1. **미국 증시/경제 관련 내용인 경우:**
    - 미국 증시, 주식, 투자, 경제 지표, 연준(Fed), 금리, 인플레이션, GDP, 고용지표, 기업 실적 등의 내용이라면
@@ -1244,19 +1251,19 @@ ${outputOptions}
 
 2. **그 외 다른 주제인 경우:**
    - → 해당 분야의 전문적인 관점에서 분석
-` + commonRequirements + `위 내용을 분석해주세요.` + animationFinalReminder;
+` + commonRequirements + `위 내용을 분석해주세요.` + animationFinalReminder + visSimPrompt;
 
             } else if (mode === 'finance') {
                 return header + `아래 내용을 **미국 증시 및 경제적 관점**에서 상세하게 분석해주세요.
 ${outputOptions}
 📈 **분석 방향:** 미국 증시 영향, 투자 시사점, 섹터/종목 분석, 거시경제 연관성, 연준 정책, 시장 전망
-` + commonRequirements + `위 내용을 미국증시/경제 관점에서 분석해주세요.` + animationFinalReminder;
+` + commonRequirements + `위 내용을 미국증시/경제 관점에서 분석해주세요.` + animationFinalReminder + visSimPrompt;
 
             } else {
                 return header + `아래 내용을 **해당 분야의 전문적인 관점**에서 상세하게 분석해주세요.
 ${outputOptions}
 📚 **분석 방향:** 핵심 주제 파악, 중요 포인트, 전문 용어 설명, 배경 지식, 실용적 시사점
-` + commonRequirements + `위 내용을 해당 분야에 맞게 전문적으로 분석해주세요.` + animationFinalReminder;
+` + commonRequirements + `위 내용을 해당 분야에 맞게 전문적으로 분석해주세요.` + animationFinalReminder + visSimPrompt;
             }
         }
 
@@ -1322,11 +1329,13 @@ ${outputOptions}
             setAnalysisMode('auto');
             setFileFormat('auto');
             setDocLayout('auto');
+            
             // 슬라이더 초기화
             document.getElementById('densitySlider').value = 4;
             document.getElementById('explainSlider').value = 4;
             updateDensity(4);
             updateExplain(4);
+            
             // 시험문제 초기화
             quizEnabled = false;
             quizCount = 10;
@@ -1335,9 +1344,16 @@ ${outputOptions}
             document.getElementById('quizSlider').value = 10;
             document.getElementById('quizInput').value = 10;
             document.getElementById('quizSeparateDoc').checked = true;
+            
             // Chart.js 애니메이션 초기화
             chartAnimationEnabled = true;
             document.getElementById('chartAnimationToggle').checked = true;
+            
+            // 시각화&시뮬레이션 초기화
+            visSimEnabled = false;
+            document.getElementById('visSimToggle').checked = false;
+            document.getElementById('visSimBadge').classList.add('hidden');
+            
             // 테마 초기화
             currentTheme = 'auto';
             document.getElementById('themeSelect').value = 'auto';
